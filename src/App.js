@@ -1,0 +1,1963 @@
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Plus } from 'lucide-react';
+
+export default function ProductionSystem() {
+  const ADMIN_KEY = 'Essalud2025*';
+  
+  // Agregar estilos para animación
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loginDNI, setLoginDNI] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [userPasswords, setUserPasswords] = useState({});
+  const [userFullNames, setUserFullNames] = useState({});
+  const [showRegister, setShowRegister] = useState(false);
+  const [newDNI, setNewDNI] = useState('');
+  const [newFullName, setNewFullName] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [productions, setProductions] = useState([]);
+  const [items] = useState(['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']);
+  const [sopCategories] = useState(['Urologia', 'Columna neuro', 'Panangiografia cerebral', 'Cirugia pediatrica', 'Traumatologia', 'Terapia del dolor', 'Marcapaso', 'Hemodinamia', 'Cirugia general', 'Otro']);
+  const [myProductionMonth, setMyProductionMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [productionToDelete, setProductionToDelete] = useState(null);
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryDNI, setRecoveryDNI] = useState('');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [editableItems, setEditableItems] = useState([...['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']]);
+  const [newSalaName, setNewSalaName] = useState('');
+  const [editingProduction, setEditingProduction] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessageText, setSuccessMessageText] = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState({ title: '', message: '', onConfirm: null });
+  const [showPromptDialog, setShowPromptDialog] = useState(false);
+  const [promptDialogData, setPromptDialogData] = useState({ title: '', message: '', onConfirm: null });
+  const [promptValue, setPromptValue] = useState('');
+  const [showAllProductions, setShowAllProductions] = useState(false);
+  const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
+  
+  // Función helper para mostrar mensajes
+  const showMessage = (message, duration = 3000) => {
+    setSuccessMessageText(message);
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), duration);
+  };
+  
+  useEffect(() => {
+    loadData();
+  }, []);
+  
+  useEffect(() => {
+    if (isLoggedIn) {
+      saveData();
+    }
+  }, [users, userPasswords, userFullNames, productions, editableItems, isLoggedIn]);
+  
+  const loadData = () => {
+    try {
+      const usersData = localStorage.getItem('production-users');
+      const passData = localStorage.getItem('production-passwords');
+      const namesData = localStorage.getItem('production-fullnames');
+      const prodsData = localStorage.getItem('production-records');
+      const salasData = localStorage.getItem('production-salas');
+      
+      if (usersData) setUsers(JSON.parse(usersData));
+      if (passData) setUserPasswords(JSON.parse(passData));
+      if (namesData) setUserFullNames(JSON.parse(namesData));
+      if (prodsData) setProductions(JSON.parse(prodsData));
+      if (salasData) setEditableItems(JSON.parse(salasData));
+    } catch (e) {
+      console.log('Primera carga o error:', e);
+    }
+  };
+  
+  const saveData = () => {
+    try {
+      localStorage.setItem('production-users', JSON.stringify(users));
+      localStorage.setItem('production-passwords', JSON.stringify(userPasswords));
+      localStorage.setItem('production-fullnames', JSON.stringify(userFullNames));
+      localStorage.setItem('production-records', JSON.stringify(productions));
+      localStorage.setItem('production-salas', JSON.stringify(editableItems));
+    } catch (e) {
+      console.error('Error guardando:', e);
+    }
+  };
+  
+  const handleLogin = () => {
+    if (!loginDNI || !loginPassword) {
+      showMessage('❌ Por favor completa todos los campos');
+      return;
+    }
+    
+    if (loginPassword === ADMIN_KEY) {
+      setIsAdmin(true);
+      setCurrentUser(loginDNI);
+      setIsLoggedIn(true);
+      return;
+    }
+    
+    // Verificar si el usuario existe
+    if (!users.includes(loginDNI)) {
+      showMessage('❌ Usuario no encontrado\n\nEl DNI ingresado no está registrado en el sistema.', 4000);
+      return;
+    }
+    
+    // Verificar contraseña
+    if (userPasswords[loginDNI] === loginPassword) {
+      setCurrentUser(loginDNI);
+      setIsLoggedIn(true);
+      setIsAdmin(false);
+    } else {
+      showMessage('❌ Contraseña incorrecta\n\nLa contraseña ingresada no es correcta.\nSi olvidaste tu contraseña, usa la opción "¿Olvidaste tu contraseña?"', 5000);
+    }
+  };
+  
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser('');
+    setIsAdmin(false);
+    setLoginDNI('');
+    setLoginPassword('');
+  };
+  
+  const handleRegister = () => {
+    if (!newDNI.trim() || !newFullName.trim() || !newPassword || !newPasswordConfirm) {
+      showMessage('❌ Por favor completa todos los campos');
+      return;
+    }
+    if (users.includes(newDNI.trim())) {
+      showMessage('❌ Este DNI ya está registrado');
+      return;
+    }
+    if (newPassword.length < 4) {
+      showMessage('❌ La contraseña debe tener al menos 4 caracteres');
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      showMessage('❌ Las contraseñas no coinciden');
+      return;
+    }
+    
+    const userName = newFullName.trim();
+    const userDNI = newDNI.trim();
+    
+    setUsers([...users, userDNI]);
+    setUserPasswords({...userPasswords, [userDNI]: newPassword});
+    setUserFullNames({...userFullNames, [userDNI]: userName});
+    
+    // Limpiar campos
+    setNewDNI('');
+    setNewFullName('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    setShowRegister(false);
+    
+    // Mostrar mensaje de éxito visual
+    showMessage(`¡Usuario registrado exitosamente!\n\n👤 ${userName}\n🆔 DNI: ${userDNI}\n\nAhora puedes iniciar sesión`, 5000);
+  };
+  
+  const addProduction = (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null) => {
+    if (sala === 'Rx especiales' && rxEspeciales) {
+      const newProds = rxEspeciales
+        .filter(esp => esp.examen.trim() && esp.cantidad)
+        .map(esp => ({
+          id: Date.now() + Math.random(),
+          user: currentUser,
+          date,
+          sala,
+          turno,
+          cantidad: parseFloat(esp.cantidad),
+          rxEspecialExamen: esp.examen,
+          timestamp: new Date().toISOString()
+        }));
+      
+      setProductions([...productions, ...newProds]);
+      alert(`✅ ${newProds.length} examen(es) registrado(s)!`);
+      return true;
+    }
+    
+    const newProd = {
+      id: Date.now(),
+      user: currentUser,
+      date,
+      sala,
+      turno,
+      cantidad: parseFloat(cantidad),
+      sopCategory: sopCategory || null,
+      timestamp: new Date().toISOString()
+    };
+    
+    setProductions([...productions, newProd]);
+    alert('✅ Producción registrada!');
+    return true;
+  };
+  
+  const deleteProduction = (id) => {
+    setProductionToDelete(id);
+    setShowDeleteDialog(true);
+  };
+  
+  const editProduction = (prod) => {
+    setEditingProduction({...prod});
+    setShowEditDialog(true);
+  };
+  
+  const saveEditedProduction = () => {
+    if (!editingProduction.sala || !editingProduction.turno || !editingProduction.cantidad) {
+      showMessage('❌ Por favor completa todos los campos');
+      return;
+    }
+    
+    const updatedProductions = productions.map(p => 
+      p.id === editingProduction.id ? editingProduction : p
+    );
+    
+    setProductions(updatedProductions);
+    setShowEditDialog(false);
+    setEditingProduction(null);
+    showMessage('✅ Producción actualizada!');
+  };
+  
+  const cancelEdit = () => {
+    setShowEditDialog(false);
+    setEditingProduction(null);
+  };
+  
+  const confirmDelete = () => {
+    if (productionToDelete) {
+      setProductions(productions.filter(p => p.id !== productionToDelete));
+      showMessage('✅ Registro eliminado!');
+    }
+    setShowDeleteDialog(false);
+    setProductionToDelete(null);
+  };
+  
+  const handlePasswordRecovery = () => {
+    if (!recoveryDNI.trim()) {
+      showMessage('❌ Por favor ingresa tu DNI');
+      return;
+    }
+    
+    if (!users.includes(recoveryDNI.trim())) {
+      showMessage('❌ DNI no encontrado\n\nEl DNI ingresado no está registrado en el sistema.', 4000);
+      return;
+    }
+    
+    const password = userPasswords[recoveryDNI.trim()];
+    showMessage(`🔑 Tu contraseña es: ${password}\n\nPor seguridad, considera cambiarla después de iniciar sesión.`, 6000);
+    setShowRecovery(false);
+    setRecoveryDNI('');
+  };
+  
+  const exportToTXT = () => {
+    const report = generateReport();
+    let content = `REPORTE DE PRODUCCIÓN - ${reportMonth}\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `TOTAL GENERAL: ${report.totalGeneral}\n`;
+    content += `REGISTROS: ${report.recordCount}\n\n`;
+    
+    content += `TOTALES POR TURNO:\n`;
+    content += `${'-'.repeat(40)}\n`;
+    Object.entries(report.byTurno).forEach(([turno, total]) => {
+      content += `${turno}: ${total}\n`;
+    });
+    
+    content += `\nTOTALES POR SALA:\n`;
+    content += `${'-'.repeat(40)}\n`;
+    editableItems.forEach(item => {
+      if (report.bySala[item] > 0) {
+        content += `${item}: ${report.bySala[item]}\n`;
+      }
+    });
+    
+    content += `\nTOTALES POR CATEGORÍA RX SOP:\n`;
+    content += `${'-'.repeat(40)}\n`;
+    let hasSopData = false;
+    sopCategories.forEach(cat => {
+      if (report.bySopCategory[cat] > 0) {
+        content += `${cat}: ${report.bySopCategory[cat]}\n`;
+        hasSopData = true;
+      }
+    });
+    if (!hasSopData) {
+      content += `(Sin registros de Rx SOP este mes)\n`;
+    }
+    
+    // Nuevo: Totales de Exámenes Especiales
+    content += `\nTOTALES DE EXÁMENES ESPECIALES:\n`;
+    content += `${'-'.repeat(40)}\n`;
+    const hasRxEspecialData = Object.keys(report.byRxEspecial).length > 0;
+    if (hasRxEspecialData) {
+      Object.entries(report.byRxEspecial).forEach(([examen, total]) => {
+        content += `${examen}: ${total}\n`;
+      });
+    } else {
+      content += `(Sin exámenes especiales registrados este mes)\n`;
+    }
+    
+    content += `\nDETALLE POR USUARIO:\n`;
+    content += `${'='.repeat(60)}\n`;
+    Object.entries(report.byUser).forEach(([user, data]) => {
+      content += `\nUsuario: ${userFullNames[user] || user}\n`;
+      content += `Total: ${data.total}\n`;
+      content += `Horas trabajadas: ${data.horasTrabajadas}h\n`;
+      content += `Promedio por hora: ${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}\n`;
+      content += `Turnos - Diurno: ${data.turnos.Diurno}, Mañana: ${data.turnos.Mañana}, Tarde: ${data.turnos.Tarde}, Noche: ${data.turnos.Noche}\n`;
+      
+      // Agregar categorías SOP si tiene
+      const userSopTotal = Object.values(data.sopCategories).reduce((sum, val) => sum + val, 0);
+      if (userSopTotal > 0) {
+        content += `Rx SOP por categoría:\n`;
+        sopCategories.forEach(cat => {
+          if (data.sopCategories[cat] > 0) {
+            content += `  - ${cat}: ${data.sopCategories[cat]}\n`;
+          }
+        });
+      }
+      
+      // Nuevo: Agregar exámenes especiales si tiene
+      const userRxEspecialTotal = Object.values(data.rxEspeciales || {}).reduce((sum, val) => sum + val, 0);
+      if (userRxEspecialTotal > 0) {
+        content += `Exámenes Especiales:\n`;
+        Object.entries(data.rxEspeciales).forEach(([examen, cantidad]) => {
+          if (cantidad > 0) {
+            content += `  - ${examen}: ${cantidad}\n`;
+          }
+        });
+      }
+      
+      content += `${'-'.repeat(40)}\n`;
+    });
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte-produccion-${reportMonth}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('✅ Reporte exportado a TXT');
+  };
+  
+  const exportToPDF = () => {
+    console.log('exportToPDF llamado'); // Para debug
+    
+    const report = generateReport();
+    const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
+    
+    // Crear el contenido HTML mejorado para impresión directa
+    const content = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Producción - ${reportMonth}</title>
+  <style>
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none; }
+    }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 30px;
+      background: white;
+    }
+    h1 { 
+      color: #4F46E5; 
+      border-bottom: 3px solid #4F46E5; 
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 { 
+      color: #7C3AED; 
+      margin-top: 30px; 
+      border-bottom: 2px solid #E9D5FF; 
+      padding-bottom: 5px;
+      page-break-after: avoid;
+    }
+    .summary { 
+      background: #EEF2FF; 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin: 20px 0;
+      display: flex;
+      gap: 30px;
+    }
+    .user-section { 
+      background: #F9FAFB; 
+      padding: 15px; 
+      margin: 15px 0; 
+      border-left: 4px solid #4F46E5;
+      page-break-inside: avoid;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 15px 0;
+      page-break-inside: avoid;
+    }
+    th { 
+      background: #4F46E5; 
+      color: white; 
+      padding: 10px; 
+      text-align: left;
+      font-weight: bold;
+    }
+    td { 
+      padding: 8px; 
+      border-bottom: 1px solid #E5E7EB;
+    }
+    tr:nth-child(even) { 
+      background: #F9FAFB; 
+    }
+    .stat { 
+      flex: 1;
+    }
+    .stat-label { 
+      color: #6B7280; 
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    .stat-value { 
+      color: #1F2937; 
+      font-size: 24px; 
+      font-weight: bold;
+    }
+    .sop-section { 
+      background: #FEF3C7; 
+      padding: 10px; 
+      border-radius: 5px; 
+      margin: 10px 0; 
+      border-left: 4px solid #F59E0B;
+    }
+    .footer {
+      margin-top: 50px; 
+      padding-top: 20px; 
+      border-top: 2px solid #E5E7EB; 
+      color: #6B7280; 
+      font-size: 12px;
+      text-align: center;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #EF4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .print-button:hover {
+      background: #DC2626;
+    }
+    @media print {
+      .print-button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+  
+  <h1>📊 Reporte de Producción - ${reportMonth}</h1>
+  
+  <div class="summary">
+    <div class="stat">
+      <div class="stat-label">Total General</div>
+      <div class="stat-value">${report.totalGeneral}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total de Registros</div>
+      <div class="stat-value">${report.recordCount}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Usuarios Activos</div>
+      <div class="stat-value">${Object.keys(report.byUser).length}</div>
+    </div>
+  </div>
+  
+  <h2>📅 Totales por Turno</h2>
+  <table>
+    <tr><th>Turno</th><th>Total</th><th>Porcentaje</th></tr>
+    ${Object.entries(report.byTurno).map(([turno, total]) => 
+      `<tr>
+        <td><strong>${turno}</strong></td>
+        <td><strong>${total}</strong></td>
+        <td>${report.totalGeneral > 0 ? ((total / report.totalGeneral) * 100).toFixed(1) : 0}%</td>
+      </tr>`
+    ).join('')}
+  </table>
+  
+  <h2>🏥 Totales por Sala</h2>
+  <table>
+    <tr><th>Sala</th><th>Total</th><th>Porcentaje</th></tr>
+    ${editableItems.filter(item => report.bySala[item] > 0).map(item => 
+      `<tr>
+        <td>${item}</td>
+        <td><strong>${report.bySala[item]}</strong></td>
+        <td>${report.totalGeneral > 0 ? ((report.bySala[item] / report.totalGeneral) * 100).toFixed(1) : 0}%</td>
+      </tr>`
+    ).join('')}
+  </table>
+  
+  ${hasSopData ? `
+  <h2>🔬 Totales por Categoría Rx SOP</h2>
+  <table>
+    <tr><th>Categoría</th><th>Total</th></tr>
+    ${sopCategories.filter(cat => report.bySopCategory[cat] > 0).map(cat => 
+      `<tr>
+        <td>${cat}</td>
+        <td><strong>${report.bySopCategory[cat]}</strong></td>
+      </tr>`
+    ).join('')}
+  </table>
+  ` : ''}
+  
+  ${Object.keys(report.byRxEspecial).length > 0 ? `
+  <h2>🔬 Totales de Exámenes Especiales</h2>
+  <table>
+    <tr><th>Examen</th><th>Total</th></tr>
+    ${Object.entries(report.byRxEspecial).map(([examen, total]) => 
+      `<tr>
+        <td>${examen}</td>
+        <td><strong>${total}</strong></td>
+      </tr>`
+    ).join('')}
+  </table>
+  ` : ''}
+  
+  <h2>👥 Detalle por Usuario</h2>
+  ${Object.entries(report.byUser).map(([user, data]) => {
+    const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
+    return `
+    <div class="user-section">
+      <h3>👤 ${userFullNames[user] || user}</h3>
+      <table style="margin: 10px 0;">
+        <tr>
+          <th>Total</th>
+          <th>Horas Trabajadas</th>
+          <th>Promedio/Hora</th>
+        </tr>
+        <tr>
+          <td><strong>${data.total}</strong></td>
+          <td><strong>${data.horasTrabajadas}h</strong></td>
+          <td><strong>${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</strong></td>
+        </tr>
+      </table>
+      
+      <p><strong>📊 Distribución por Turno:</strong></p>
+      <table style="margin: 10px 0;">
+        <tr>
+          <th>Diurno</th>
+          <th>Mañana</th>
+          <th>Tarde</th>
+          <th>Noche</th>
+        </tr>
+        <tr>
+          <td>${data.turnos.Diurno}</td>
+          <td>${data.turnos.Mañana}</td>
+          <td>${data.turnos.Tarde}</td>
+          <td>${data.turnos.Noche}</td>
+        </tr>
+      </table>
+      
+      ${userSopTotal > 0 ? `
+      <div class="sop-section">
+        <strong>🔬 Rx SOP por categoría:</strong><br><br>
+        <table>
+          <tr><th>Categoría</th><th>Cantidad</th></tr>
+          ${sopCategories.filter(cat => data.sopCategories[cat] > 0).map(cat => 
+            `<tr><td>${cat}</td><td><strong>${data.sopCategories[cat]}</strong></td></tr>`
+          ).join('')}
+        </table>
+      </div>
+      ` : ''}
+      
+      ${Object.keys(data.rxEspeciales || {}).length > 0 && Object.values(data.rxEspeciales).reduce((sum, val) => sum + val, 0) > 0 ? `
+      <div class="sop-section" style="background: #DBEAFE; border-left: 4px solid #3B82F6;">
+        <strong>🔬 Exámenes Especiales:</strong><br><br>
+        <table>
+          <tr><th>Examen</th><th>Cantidad</th></tr>
+          ${Object.entries(data.rxEspeciales).filter(([, cant]) => cant > 0).map(([examen, cantidad]) => 
+            `<tr><td>${examen}</td><td><strong>${cantidad}</strong></td></tr>`
+          ).join('')}
+        </table>
+      </div>
+      ` : ''}
+    </div>
+  `}).join('')}
+  
+  <div class="footer">
+    <p><strong>Sistema de Producción Diaria - EsSalud</strong></p>
+    <p>Reporte generado el ${new Date().toLocaleString('es-PE', { 
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}</p>
+  </div>
+</body>
+</html>`;
+    
+    try {
+      // Crear y descargar el archivo HTML
+      const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reporte-produccion-${reportMonth}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      alert('✅ Reporte descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML descargado\n2. Click en el botón rojo "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      alert('❌ Error al exportar el reporte: ' + error.message);
+    }
+  };
+  
+  const deleteUser = (dni) => {
+    console.log('deleteUser llamado para:', dni);
+    
+    setConfirmDialogData({
+      title: '🗑️ Eliminar Usuario',
+      message: `¿Eliminar usuario ${userFullNames[dni] || dni}?\n\nEsto también eliminará todos sus registros de producción.\n\n⚠️ Esta acción no se puede deshacer.`,
+      onConfirm: () => {
+        try {
+          const updatedUsers = users.filter(u => u !== dni);
+          const updatedPasswords = {...userPasswords};
+          const updatedNames = {...userFullNames};
+          delete updatedPasswords[dni];
+          delete updatedNames[dni];
+          
+          const updatedProductions = productions.filter(p => p.user !== dni);
+          
+          setUsers(updatedUsers);
+          setUserPasswords(updatedPasswords);
+          setUserFullNames(updatedNames);
+          setProductions(updatedProductions);
+          
+          console.log('Usuario eliminado exitosamente');
+          setSuccessMessageText('✅ Usuario eliminado exitosamente\n\nSe eliminaron también todos sus registros de producción.');
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 4000);
+        } catch (error) {
+          console.error('Error al eliminar usuario:', error);
+          setSuccessMessageText('❌ Error al eliminar usuario: ' + error.message);
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 4000);
+        }
+      }
+    });
+    setShowConfirmDialog(true);
+  };
+  
+  const resetUserPassword = (dni) => {
+    console.log('resetUserPassword llamado para:', dni);
+    
+    const userName = userFullNames[dni] || dni;
+    
+    setPromptDialogData({
+      title: '🔑 Reset de Contraseña',
+      message: `Nueva contraseña para ${userName}:\n\n(Mínimo 4 caracteres)`,
+      onConfirm: (newPass) => {
+        if (!newPass || newPass.trim().length === 0) {
+          setSuccessMessageText('❌ La contraseña no puede estar vacía');
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 3000);
+          return;
+        }
+        
+        if (newPass.length < 4) {
+          setSuccessMessageText('❌ La contraseña debe tener al menos 4 caracteres');
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 3000);
+          return;
+        }
+        
+        try {
+          const updatedPasswords = {...userPasswords, [dni]: newPass};
+          setUserPasswords(updatedPasswords);
+          
+          console.log('Contraseña actualizada exitosamente');
+          setSuccessMessageText(`✅ Contraseña actualizada exitosamente\n\n👤 Usuario: ${userName}\n🔐 Nueva contraseña: ${newPass}\n\n⚠️ Asegúrate de informar al usuario su nueva contraseña.`);
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 6000);
+        } catch (error) {
+          console.error('Error al resetear contraseña:', error);
+          setSuccessMessageText('❌ Error al actualizar contraseña: ' + error.message);
+          setShowSuccessMessage(true);
+          setTimeout(() => setShowSuccessMessage(false), 4000);
+        }
+      }
+    });
+    setPromptValue('');
+    setShowPromptDialog(true);
+  };
+  
+  const addSala = () => {
+    if (!newSalaName.trim()) {
+      alert('Por favor ingresa el nombre de la sala');
+      return;
+    }
+    
+    if (editableItems.includes(newSalaName.trim())) {
+      alert('Esta sala ya existe');
+      return;
+    }
+    
+    setEditableItems([...editableItems, newSalaName.trim()]);
+    setNewSalaName('');
+    alert('✅ Sala agregada');
+  };
+  
+  const deleteSala = (sala) => {
+    setConfirmDialogData({
+      title: '🗑️ Eliminar Sala',
+      message: `¿Eliminar sala "${sala}"?\n\nLos registros existentes con esta sala se mantendrán, pero no podrás crear nuevos.`,
+      onConfirm: () => {
+        setEditableItems(editableItems.filter(s => s !== sala));
+        setSuccessMessageText('✅ Sala eliminada exitosamente');
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
+      }
+    });
+    setShowConfirmDialog(true);
+  };
+  
+  const getMyProductions = () => {
+    return productions
+      .filter(p => p.user === currentUser && p.date.startsWith(myProductionMonth))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+  
+  const getAllProductions = () => {
+    let filtered = productions.filter(p => p.date.startsWith(adminProductionMonth));
+    
+    // Filtrar por usuario si se especifica
+    if (filterUserDNI && filterUserDNI !== 'todos') {
+      filtered = filtered.filter(p => p.user === filterUserDNI);
+    }
+    
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+  
+  const generateReport = () => {
+    const filtered = productions.filter(p => p.date.startsWith(reportMonth));
+    const byUser = {};
+    const byTurno = { 'Diurno': 0, 'Mañana': 0, 'Tarde': 0, 'Noche': 0 };
+    const bySala = {};
+    const bySopCategory = {};
+    const byRxEspecial = {};
+    
+    editableItems.forEach(item => { bySala[item] = 0; });
+    sopCategories.forEach(cat => { bySopCategory[cat] = 0; });
+    
+    filtered.forEach(p => {
+      if (!byUser[p.user]) {
+        byUser[p.user] = { 
+          total: 0, 
+          horasTrabajadas: 0,
+          turnosPorFecha: {}, // Para controlar turnos únicos por fecha
+          turnos: { 'Diurno': 0, 'Mañana': 0, 'Tarde': 0, 'Noche': 0 }, 
+          salas: {},
+          sopCategories: {},
+          rxEspeciales: {}
+        };
+        editableItems.forEach(item => { byUser[p.user].salas[item] = 0; });
+        sopCategories.forEach(cat => { byUser[p.user].sopCategories[cat] = 0; });
+      }
+      
+      const cantidad = p.cantidad || 0;
+      byUser[p.user].total += cantidad;
+      
+      // Calcular horas trabajadas (solo contar cada turno una vez por fecha)
+      if (p.turno && p.date) {
+        const fechaTurnoKey = `${p.date}-${p.turno}`;
+        
+        if (!byUser[p.user].turnosPorFecha[fechaTurnoKey]) {
+          // Primera vez que se registra este turno en esta fecha
+          byUser[p.user].turnosPorFecha[fechaTurnoKey] = true;
+          
+          // Asignar horas según turno
+          if (p.turno === 'Mañana' || p.turno === 'Tarde') {
+            byUser[p.user].horasTrabajadas += 6;
+          } else if (p.turno === 'Diurno' || p.turno === 'Noche') {
+            byUser[p.user].horasTrabajadas += 12;
+          }
+        }
+      }
+      
+      if (p.turno) {
+        byUser[p.user].turnos[p.turno] = (byUser[p.user].turnos[p.turno] || 0) + cantidad;
+        byTurno[p.turno] = (byTurno[p.turno] || 0) + cantidad;
+      }
+      
+      if (p.sala) {
+        byUser[p.user].salas[p.sala] = (byUser[p.user].salas[p.sala] || 0) + cantidad;
+        bySala[p.sala] = (bySala[p.sala] || 0) + cantidad;
+      }
+      
+      if (p.sopCategory) {
+        byUser[p.user].sopCategories[p.sopCategory] = (byUser[p.user].sopCategories[p.sopCategory] || 0) + cantidad;
+        bySopCategory[p.sopCategory] = (bySopCategory[p.sopCategory] || 0) + cantidad;
+      }
+      
+      if (p.rxEspecialExamen) {
+        const examenNombre = p.rxEspecialExamen;
+        byRxEspecial[examenNombre] = (byRxEspecial[examenNombre] || 0) + cantidad;
+        byUser[p.user].rxEspeciales[examenNombre] = (byUser[p.user].rxEspeciales[examenNombre] || 0) + cantidad;
+      }
+    });
+    
+    const totalGeneral = filtered.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    return { byUser, totalGeneral, bySala, byTurno, bySopCategory, byRxEspecial, recordCount: filtered.length };
+  };
+  
+  if (!isLoggedIn) {
+    if (showRecovery) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">🔑 Recuperar Contraseña</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                <input
+                  type="text"
+                  value={recoveryDNI}
+                  onChange={(e) => setRecoveryDNI(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handlePasswordRecovery()}
+                  placeholder="Ingresa tu DNI"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowRecovery(false);
+                    setRecoveryDNI('');
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handlePasswordRecovery}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+                >
+                  Recuperar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (showRegister) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Registrar Usuario</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={newFullName}
+                  onChange={(e) => setNewFullName(e.target.value)}
+                  placeholder="Nombre y apellido"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                <input
+                  type="text"
+                  value={newDNI}
+                  onChange={(e) => setNewDNI(e.target.value)}
+                  placeholder="Ingresa tu DNI"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 4 caracteres"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
+                  >
+                    {showNewPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Contraseña</label>
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleRegister()}
+                  placeholder="Repite tu contraseña"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowRegister(false);
+                    setNewDNI('');
+                    setNewFullName('');
+                    setNewPassword('');
+                    setNewPasswordConfirm('');
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRegister}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+                >
+                  Registrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        {showSuccessMessage && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+            <div className={`${successMessageText.includes('❌') ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-lg shadow-2xl max-w-md`}>
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">{successMessageText.includes('❌') ? '❌' : '✅'}</div>
+                <div className="flex-1">
+                  <div className="font-bold text-lg mb-1">
+                    {successMessageText.includes('❌') ? '¡Error!' : successMessageText.includes('🔑') ? 'Recuperación de Contraseña' : '¡Éxito!'}
+                  </div>
+                  <div className="text-sm whitespace-pre-line">{successMessageText}</div>
+                </div>
+                <button
+                  onClick={() => setShowSuccessMessage(false)}
+                  className="text-white hover:text-gray-200 text-xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+          <div className="text-center mb-8">
+            <TrendingUp className="text-indigo-600 mx-auto mb-4" size={48} />
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Sistema de Producción Diaria</h1>
+            <p className="text-gray-600">Inicia sesión para continuar</p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+              <input
+                type="text"
+                value={loginDNI}
+                onChange={(e) => setLoginDNI(e.target.value)}
+                placeholder="Ingresa tu DNI"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  placeholder="Ingresa tu contraseña"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
+            
+            <button
+              onClick={handleLogin}
+              className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold text-lg"
+            >
+              Iniciar Sesión
+            </button>
+            
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">¿Primera vez aquí?</span>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowRegister(true)}
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg flex items-center justify-center gap-2"
+            >
+              <Plus size={20} />
+              Crear Nueva Cuenta
+            </button>
+            
+            <button
+              onClick={() => setShowRecovery(true)}
+              className="w-full px-4 py-2 text-indigo-600 hover:text-indigo-800 transition font-medium text-sm"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      {/* Mensaje de Éxito/Error */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+          <div className={`${successMessageText.includes('❌') ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-lg shadow-2xl max-w-md`}>
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">{successMessageText.includes('❌') ? '❌' : successMessageText.includes('🔑') ? '🔑' : '✅'}</div>
+              <div className="flex-1">
+                <div className="font-bold text-lg mb-1">
+                  {successMessageText.includes('❌') ? '¡Error!' : successMessageText.includes('🔑') ? 'Información' : '¡Éxito!'}
+                </div>
+                <div className="text-sm whitespace-pre-line">{successMessageText}</div>
+              </div>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                className="text-white hover:text-gray-200 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Diálogo de Confirmación */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{confirmDialogData.title}</h3>
+            <p className="text-gray-600 mb-6 whitespace-pre-line">{confirmDialogData.message}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  confirmDialogData.onConfirm?.();
+                }}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Diálogo de Prompt */}
+      {showPromptDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{promptDialogData.title}</h3>
+            <p className="text-gray-600 mb-4 whitespace-pre-line">{promptDialogData.message}</p>
+            <input
+              type="text"
+              value={promptValue}
+              onChange={(e) => setPromptValue(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  setShowPromptDialog(false);
+                  promptDialogData.onConfirm?.(promptValue);
+                }
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              placeholder="Ingresa la contraseña..."
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPromptDialog(false);
+                  setPromptValue('');
+                }}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setShowPromptDialog(false);
+                  promptDialogData.onConfirm?.(promptValue);
+                }}
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showEditDialog && editingProduction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">✏️ Editar Producción</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                <input
+                  type="date"
+                  value={editingProduction.date}
+                  onChange={(e) => setEditingProduction({...editingProduction, date: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sala</label>
+                <select
+                  value={editingProduction.sala}
+                  onChange={(e) => setEditingProduction({...editingProduction, sala: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Seleccionar sala</option>
+                  {editableItems.map(item => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+                <select
+                  value={editingProduction.turno}
+                  onChange={(e) => setEditingProduction({...editingProduction, turno: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Seleccionar turno</option>
+                  <option value="Diurno">Diurno</option>
+                  <option value="Mañana">Mañana</option>
+                  <option value="Tarde">Tarde</option>
+                  <option value="Noche">Noche</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                <input
+                  type="number"
+                  value={editingProduction.cantidad}
+                  onChange={(e) => setEditingProduction({...editingProduction, cantidad: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              
+              {editingProduction.rxEspecialExamen && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Examen Especial</label>
+                  <input
+                    type="text"
+                    value={editingProduction.rxEspecialExamen}
+                    onChange={(e) => setEditingProduction({...editingProduction, rxEspecialExamen: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              )}
+              
+              {editingProduction.sopCategory && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoría SOP</label>
+                  <select
+                    value={editingProduction.sopCategory}
+                    onChange={(e) => setEditingProduction({...editingProduction, sopCategory: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">Seleccionar categoría</option>
+                    {sopCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={cancelEdit}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveEditedProduction}
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">¿Eliminar registro?</h3>
+            <p className="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteDialog(false)}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Sistema de Producción Diaria</h1>
+              <p className="text-sm text-gray-600">
+                Bienvenido, <span className="font-semibold text-indigo-600">{userFullNames[currentUser] || currentUser}</span>
+                {isAdmin && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded ml-2">(Admin)</span>}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {isAdmin && (
+                <button
+                  onClick={() => setShowAdminPanel(!showAdminPanel)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-bold"
+                >
+                  ⚙️ Panel Admin
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-bold"
+              >
+                🚪 Cerrar Sesión
+              </button>
+            </div>
+          </div>
+          
+          {showAdminPanel && isAdmin && (
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-6 mb-6 border-2 border-purple-200">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">⚙️ Panel de Administración</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">👥 Gestión de Usuarios</h3>
+                  
+                  {/* Botón de prueba */}
+                  <button
+                    onClick={() => {
+                      console.log('BOTÓN DE PRUEBA CLICKEADO');
+                      alert('✅ El botón funciona! Los clicks se están registrando.');
+                    }}
+                    className="mb-3 w-full px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold"
+                  >
+                    🧪 Test - Click aquí primero
+                  </button>
+                  
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {users.map(user => (
+                      <div key={user} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm font-medium">{userFullNames[user] || user}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('🔑 Reset clickeado para:', user);
+                              resetUserPassword(user);
+                            }}
+                            className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                          >
+                            🔑 Reset
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('🗑️ Eliminar clickeado para:', user);
+                              deleteUser(user);
+                            }}
+                            className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">🏥 Gestión de Salas</h3>
+                  <div className="mb-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newSalaName}
+                        onChange={(e) => setNewSalaName(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addSala()}
+                        placeholder="Nueva sala"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                      <button
+                        onClick={addSala}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold"
+                      >
+                        + Agregar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {editableItems.map(sala => (
+                      <div key={sala} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm">{sala}</span>
+                        <button
+                          onClick={() => deleteSala(sala)}
+                          className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {showAdminPanel && isAdmin && (
+            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-cyan-200">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Gestión de Producción de Todos los Usuarios</h2>
+              
+              <div className="bg-white rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+                    <input
+                      type="month"
+                      value={adminProductionMonth}
+                      onChange={(e) => setAdminProductionMonth(e.target.value)}
+                      className="w-full px-4 py-2 border border-cyan-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Usuario</label>
+                    <select
+                      value={filterUserDNI}
+                      onChange={(e) => setFilterUserDNI(e.target.value)}
+                      className="w-full px-4 py-2 border border-cyan-200 rounded-lg"
+                    >
+                      <option value="">Todos los usuarios</option>
+                      {users.map(user => (
+                        <option key={user} value={user}>{userFullNames[user] || user}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="max-h-96 overflow-y-auto">
+                  {getAllProductions().length > 0 ? (
+                    <div className="space-y-2">
+                      {getAllProductions().map(prod => (
+                        <div key={prod.id} className="border border-cyan-200 rounded-lg p-3 hover:bg-cyan-50">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="text-sm font-semibold text-cyan-800">
+                                👤 {userFullNames[prod.user] || prod.user}
+                              </div>
+                              <div className="text-sm font-semibold text-gray-700">
+                                📅 {prod.date.split('-').reverse().join('/')} - {prod.turno}
+                              </div>
+                              <div className="text-sm text-gray-600">🏥 {prod.sala}</div>
+                              {prod.rxEspecialExamen && (
+                                <div className="text-xs text-blue-600">🔬 Examen: {prod.rxEspecialExamen}</div>
+                              )}
+                              {prod.sopCategory && (
+                                <div className="text-xs text-orange-600">🏥 Categoría: {prod.sopCategory}</div>
+                              )}
+                              <div className="text-lg font-bold text-cyan-700">Cantidad: {prod.cantidad}</div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => editProduction(prod)}
+                                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                              >
+                                ✏️ Editar
+                              </button>
+                              <button
+                                onClick={() => deleteProduction(prod.id)}
+                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                              >
+                                🗑️ Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="mt-4 p-3 bg-cyan-100 rounded-lg">
+                        <div className="text-sm font-semibold text-cyan-800">
+                          Total: {getAllProductions().reduce((sum, p) => sum + p.cantidad, 0)}
+                        </div>
+                        <div className="text-xs text-cyan-600">
+                          {getAllProductions().length} registro(s)
+                          {filterUserDNI && filterUserDNI !== 'todos' && ` - ${userFullNames[filterUserDNI] || filterUserDNI}`}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No hay registros para este mes/usuario</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="bg-green-50 rounded-lg p-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Registrar Producción</h2>
+            <ProductionForm 
+              currentUser={userFullNames[currentUser] || currentUser}
+              items={editableItems}
+              sopCategories={sopCategories}
+              onSubmit={addProduction}
+            />
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Mi Producción del Mes</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+              <input
+                type="month"
+                value={myProductionMonth}
+                onChange={(e) => setMyProductionMonth(e.target.value)}
+                className="px-4 py-2 border border-purple-200 rounded-lg"
+              />
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 max-h-96 overflow-y-auto">
+              {getMyProductions().length > 0 ? (
+                <div className="space-y-2">
+                  {getMyProductions().map(prod => (
+                    <div key={prod.id} className="border border-purple-200 rounded-lg p-3 hover:bg-purple-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-700">
+                            {prod.date.split('-').reverse().join('/')} - {prod.turno}
+                          </div>
+                          <div className="text-sm text-gray-600">{prod.sala}</div>
+                          {prod.rxEspecialExamen && (
+                            <div className="text-xs text-blue-600">Examen: {prod.rxEspecialExamen}</div>
+                          )}
+                          {prod.sopCategory && (
+                            <div className="text-xs text-orange-600">Categoría: {prod.sopCategory}</div>
+                          )}
+                          <div className="text-lg font-bold text-purple-700">Cantidad: {prod.cantidad}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => editProduction(prod)}
+                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => deleteProduction(prod.id)}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-4 p-3 bg-purple-100 rounded-lg">
+                    <div className="text-sm font-semibold text-purple-800">
+                      Total: {getMyProductions().reduce((sum, p) => sum + p.cantidad, 0)}
+                    </div>
+                    <div className="text-xs text-purple-600">{getMyProductions().length} registro(s)</div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No hay registros para este mes</p>
+              )}
+            </div>
+          </div>
+          
+          <ReportSection 
+            reportMonth={reportMonth}
+            setReportMonth={setReportMonth}
+            report={generateReport()}
+            userFullNames={userFullNames}
+            items={editableItems}
+            exportToTXT={exportToTXT}
+            exportToPDF={exportToPDF}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReportSection({ reportMonth, setReportMonth, report, userFullNames, items, exportToTXT, exportToPDF }) {
+  return (
+    <div className="bg-purple-50 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-gray-700">Reporte Mensual</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={exportToTXT}
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+          >
+            📄 Exportar TXT
+          </button>
+          <button
+            onClick={exportToPDF}
+            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold"
+          >
+            📑 Exportar PDF
+          </button>
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+        <input
+          type="month"
+          value={reportMonth}
+          onChange={(e) => setReportMonth(e.target.value)}
+          className="px-4 py-2 border border-purple-200 rounded-lg"
+        />
+      </div>
+      
+      <div className="bg-white rounded-lg p-4">
+        <div className="mb-4 p-4 bg-purple-100 rounded-lg">
+          <div className="text-2xl font-bold text-purple-700">{report.totalGeneral}</div>
+          <div className="text-sm text-purple-600">Total General ({report.recordCount} registros)</div>
+        </div>
+        
+        <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+          <h3 className="font-semibold text-gray-800 mb-3">Totales por Turno</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-white rounded-lg text-center">
+              <div className="text-xs text-gray-600 mb-1">Diurno</div>
+              <div className="text-xl font-bold text-green-700">{report.byTurno.Diurno}</div>
+            </div>
+            <div className="p-3 bg-white rounded-lg text-center">
+              <div className="text-xs text-gray-600 mb-1">Mañana</div>
+              <div className="text-xl font-bold text-blue-700">{report.byTurno.Mañana}</div>
+            </div>
+            <div className="p-3 bg-white rounded-lg text-center">
+              <div className="text-xs text-gray-600 mb-1">Tarde</div>
+              <div className="text-xl font-bold text-orange-700">{report.byTurno.Tarde}</div>
+            </div>
+            <div className="p-3 bg-white rounded-lg text-center">
+              <div className="text-xs text-gray-600 mb-1">Noche</div>
+              <div className="text-xl font-bold text-indigo-700">{report.byTurno.Noche}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-3">Totales por Sala</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+            {items.map(item => (
+              report.bySala[item] > 0 && (
+                <div key={item} className="p-2 bg-purple-50 rounded">
+                  <div className="text-xs text-gray-600">{item}</div>
+                  <div className="font-semibold text-purple-700">{report.bySala[item]}</div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+        
+        {Object.values(report.bySopCategory).some(val => val > 0) && (
+          <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+            <h3 className="font-semibold text-gray-800 mb-3">🏥 Totales por Categoría Rx SOP</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              {['Urologia', 'Columna neuro', 'Panangiografia cerebral', 'Cirugia pediatrica', 'Traumatologia', 'Terapia del dolor', 'Marcapaso', 'Hemodinamia', 'Cirugia general', 'Otro'].map(cat => (
+                report.bySopCategory[cat] > 0 && (
+                  <div key={cat} className="p-2 bg-white rounded border border-orange-200">
+                    <div className="text-xs text-gray-600">{cat}</div>
+                    <div className="font-semibold text-orange-700">{report.bySopCategory[cat]}</div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {Object.keys(report.byRxEspecial).length > 0 && (
+          <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+            <h3 className="font-semibold text-gray-800 mb-3">🔬 Totales de Exámenes Especiales</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              {Object.entries(report.byRxEspecial).map(([examen, total]) => (
+                <div key={examen} className="p-2 bg-white rounded border border-blue-200">
+                  <div className="text-xs text-gray-600">{examen}</div>
+                  <div className="font-semibold text-blue-700">{total}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <h3 className="font-semibold text-gray-800 mb-3">Detalle por Usuario</h3>
+        {Object.entries(report.byUser).map(([user, data]) => {
+          const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
+          return (
+          <div key={user} className="mb-4 p-4 border border-gray-200 rounded-lg">
+            <div className="font-semibold text-gray-800 mb-2">{userFullNames[user] || user}</div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              <div className="p-2 bg-gray-50 rounded">
+                <div className="text-xs text-gray-600">Total</div>
+                <div className="font-semibold text-gray-800">{data.total}</div>
+              </div>
+              <div className="p-2 bg-gray-50 rounded">
+                <div className="text-xs text-gray-600">Horas trabajadas</div>
+                <div className="font-semibold text-gray-800">{data.horasTrabajadas}h</div>
+              </div>
+              <div className="p-2 bg-gray-50 rounded">
+                <div className="text-xs text-gray-600">Promedio/hora</div>
+                <div className="font-semibold text-gray-800">{data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</div>
+              </div>
+            </div>
+            
+            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <div className="p-2 bg-green-50 rounded">
+                <div className="text-gray-600">Diurno</div>
+                <div className="font-semibold text-green-700">{data.turnos.Diurno}</div>
+              </div>
+              <div className="p-2 bg-blue-50 rounded">
+                <div className="text-gray-600">Mañana</div>
+                <div className="font-semibold text-blue-700">{data.turnos.Mañana}</div>
+              </div>
+              <div className="p-2 bg-orange-50 rounded">
+                <div className="text-gray-600">Tarde</div>
+                <div className="font-semibold text-orange-700">{data.turnos.Tarde}</div>
+              </div>
+              <div className="p-2 bg-indigo-50 rounded">
+                <div className="text-gray-600">Noche</div>
+                <div className="font-semibold text-indigo-700">{data.turnos.Noche}</div>
+              </div>
+            </div>
+            
+            {userSopTotal > 0 && (
+              <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="text-xs font-semibold text-orange-800 mb-2">🏥 Rx SOP por categoría:</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  {['Urologia', 'Columna neuro', 'Panangiografia cerebral', 'Cirugia pediatrica', 'Traumatologia', 'Terapia del dolor', 'Marcapaso', 'Hemodinamia', 'Cirugia general', 'Otro'].map(cat => (
+                    data.sopCategories[cat] > 0 && (
+                      <div key={cat} className="flex justify-between items-center">
+                        <span className="text-gray-600">{cat}:</span>
+                        <span className="font-semibold text-orange-700">{data.sopCategories[cat]}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {Object.keys(data.rxEspeciales || {}).length > 0 && Object.values(data.rxEspeciales).reduce((sum, val) => sum + val, 0) > 0 && (
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-800 mb-2">🔬 Exámenes Especiales:</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  {Object.entries(data.rxEspeciales).filter(([, cant]) => cant > 0).map(([examen, cantidad]) => (
+                    <div key={examen} className="flex justify-between items-center">
+                      <span className="text-gray-600">{examen}:</span>
+                      <span className="font-semibold text-blue-700">{cantidad}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )})}
+        
+        
+        {Object.keys(report.byUser).length === 0 && (
+          <p className="text-gray-500 text-center py-4">No hay datos para este mes</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sala, setSala] = useState('');
+  const [turno, setTurno] = useState('');
+  const [cantidad, setCantidad] = useState('');
+  const [sopCategory, setSopCategory] = useState('');
+  const [rxEspeciales, setRxEspeciales] = useState([
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' }
+  ]);
+  
+  const handleSubmit = () => {
+    if (!sala || !turno) {
+      alert('Por favor completa sala y turno');
+      return;
+    }
+    
+    if (sala === 'Rx Sop' && !sopCategory) {
+      alert('Por favor selecciona una categoría de Rx SOP');
+      return;
+    }
+    
+    if (sala === 'Rx especiales') {
+      const hasValid = rxEspeciales.some(esp => esp.examen.trim() && esp.cantidad);
+      if (!hasValid) {
+        alert('Por favor ingresa al menos un examen especial');
+        return;
+      }
+      const success = onSubmit(date, sala, turno, 0, null, rxEspeciales);
+      if (success) {
+        setSala('');
+        setTurno('');
+        setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+      }
+      return;
+    }
+    
+    if (!cantidad) {
+      alert('Por favor ingresa la cantidad');
+      return;
+    }
+    
+    const success = onSubmit(date, sala, turno, cantidad, sopCategory);
+    if (success) {
+      setSala('');
+      setTurno('');
+      setCantidad('');
+      setSopCategory('');
+    }
+  };
+  
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+          <input
+            type="text"
+            value={currentUser}
+            disabled
+            className="w-full px-4 py-2 border border-green-200 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-4 py-2 border border-green-200 rounded-lg"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Sala</label>
+          <select
+            value={sala}
+            onChange={(e) => {
+              setSala(e.target.value);
+              setSopCategory('');
+              setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+            }}
+            className="w-full px-4 py-2 border border-green-200 rounded-lg"
+          >
+            <option value="">Seleccionar sala</option>
+            {items.map(item => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        </div>
+        
+        {sala === 'Rx Sop' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría Rx SOP</label>
+            <select
+              value={sopCategory}
+              onChange={(e) => setSopCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            >
+              <option value="">Seleccionar categoría</option>
+              {sopCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+          <select
+            value={turno}
+            onChange={(e) => setTurno(e.target.value)}
+            className="w-full px-4 py-2 border border-green-200 rounded-lg"
+          >
+            <option value="">Seleccionar turno</option>
+            <option value="Diurno">Diurno</option>
+            <option value="Mañana">Mañana</option>
+            <option value="Tarde">Tarde</option>
+            <option value="Noche">Noche</option>
+          </select>
+        </div>
+        
+        {sala !== 'Rx especiales' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+              placeholder="0"
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            />
+          </div>
+        )}
+      </div>
+      
+      {sala === 'Rx especiales' && (
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
+          {rxEspeciales.map((esp, index) => (
+            <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
+                <input
+                  type="text"
+                  value={esp.examen}
+                  onChange={(e) => {
+                    const newEsp = [...rxEspeciales];
+                    newEsp[index].examen = e.target.value;
+                    setRxEspeciales(newEsp);
+                  }}
+                  placeholder="Nombre del examen"
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+                <input
+                  type="number"
+                  value={esp.cantidad}
+                  onChange={(e) => {
+                    const newEsp = [...rxEspeciales];
+                    newEsp[index].cantidad = e.target.value;
+                    setRxEspeciales(newEsp);
+                  }}
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <button
+        onClick={handleSubmit}
+        className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
+      >
+        Registrar Producción
+      </button>
+    </div>
+  );
+}
