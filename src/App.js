@@ -805,7 +805,7 @@ export default function ProductionSystem() {
         sopCategories.forEach(cat => { byUser[p.user].sopCategories[cat] = 0; });
       }
       
-      const cantidad = p.cantidad || 0;
+      const cantidad = Number(p.cantidad) || 0;
       byUser[p.user].total += cantidad;
       
       // Calcular horas trabajadas (solo contar cada turno una vez por fecha)
@@ -847,7 +847,7 @@ export default function ProductionSystem() {
       }
     });
     
-    const totalGeneral = filtered.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    const totalGeneral = filtered.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
     return { byUser, totalGeneral, bySala, byTurno, bySopCategory, byRxEspecial, recordCount: filtered.length };
   };
   
