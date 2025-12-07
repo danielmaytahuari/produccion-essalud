@@ -239,7 +239,7 @@ export default function ProductionSystem() {
     }
     
     const updatedProductions = productions.map(p => 
-      p.id === editingProduction.id ? editingProduction : p
+      p.id === editingProduction.id ? {...editingProduction, cantidad: Number(editingProduction.cantidad)} : p
     );
     
     setProductions(updatedProductions);
@@ -1491,7 +1491,7 @@ export default function ProductionSystem() {
                       ))}
                       <div className="mt-4 p-3 bg-cyan-100 rounded-lg">
                         <div className="text-sm font-semibold text-cyan-800">
-                          Total: {getAllProductions().reduce((sum, p) => sum + p.cantidad, 0)}
+                          Total: {getAllProductions().reduce((sum, p) => sum + Number(p.cantidad), 0)}
                         </div>
                         <div className="text-xs text-cyan-600">
                           {getAllProductions().length} registro(s)
@@ -1568,7 +1568,7 @@ export default function ProductionSystem() {
                   ))}
                   <div className="mt-4 p-3 bg-purple-100 rounded-lg">
                     <div className="text-sm font-semibold text-purple-800">
-                      Total: {getMyProductions().reduce((sum, p) => sum + p.cantidad, 0)}
+                      Total: {getMyProductions().reduce((sum, p) => sum + Number(p.cantidad), 0)}
                     </div>
                     <div className="text-xs text-purple-600">{getMyProductions().length} registro(s)</div>
                   </div>
