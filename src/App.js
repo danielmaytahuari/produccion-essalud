@@ -1770,8 +1770,8 @@ const exportToPDF = () => {
       if (filtered.length === 0) return null;
       
       // Obtener días del mes
-      const [year, month] = myProductionMonth.split('-');
-      const daysInMonth = new Date(year, month, 0).getDate();
+      const [yearCal, monthCal] = myProductionMonth.split('-');
+      const daysInMonth = new Date(yearCal, monthCal, 0).getDate();
       const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
       
       // Crear estructura: { "Sala/Turno": { día: cantidad } }
