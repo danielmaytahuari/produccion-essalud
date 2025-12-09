@@ -375,14 +375,14 @@
       showMessage('✅ Reporte ado a TXT');
     };
     
-const generateCalendarHTML = (userId, userName) => {
+const generateCalendarHTML = (userId, userName, targetMonth) => {
   const filtered = productions.filter(p => 
-    p.user === userId && p.date.startsWith(reportMonth)
+    p.user === userId && p.date.startsWith(targetMonth)
   );
   
   if (filtered.length === 0) return '';
   
-  const [year, month] = reportMonth.split('-');
+  const [year, month] = targetMonth.split('-');
   const daysInMonth = new Date(year, month, 0).getDate();
   const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
   
@@ -419,7 +419,7 @@ const generateCalendarHTML = (userId, userName) => {
     rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
   });
   
-  const monthName = new Date(reportMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+  const monthName = new Date(targetMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
   
   let html = `
     <div style="page-break-before: always; margin-top: 40px;">
@@ -741,7 +741,7 @@ const exportToPDF = () => {
     
     console.log('Agregando calendarios individuales para', Object.keys(report.byUser).length, 'usuarios');
     Object.keys(report.byUser).forEach(user => {
-      const calHtml = generateCalendarHTML(user, userFullNames[user] || user);
+      const calHtml = generateCalendarHTML(user, userFullNames[user] || user, reportMonth);
       if (calHtml) {
         content += calHtml;
       }
@@ -750,7 +750,7 @@ const exportToPDF = () => {
   } else {
     console.log('Generando calendario individual para usuario:', currentUser);
     const userName = userFullNames[currentUser] || currentUser;
-    const calHtml = generateCalendarHTML(currentUser, userName);
+    const calHtml = generateCalendarHTML(currentUser, userName, reportMonth);
     
     if (calHtml) {
       content += calHtml;
