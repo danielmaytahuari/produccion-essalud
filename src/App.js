@@ -419,7 +419,7 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
     rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
   });
   
-  const monthName = new Date(myProductionMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+  const monthName = new Date(targetMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
   
   let html = `
     <div style="page-break-before: always; margin-top: 40px;">
