@@ -283,56 +283,62 @@ export default function ProductionSystem() {
     const report = generateReport();
     let content = `REPORTE DE PRODUCCIÓN - ${reportMonth}\n`;
     content += `${'='.repeat(60)}\n\n`;
-    content += `TOTAL GENERAL: ${report.totalGeneral}\n`;
-    content += `REGISTROS: ${report.recordCount}\n\n`;
     
-    content += `TOTALES POR TURNO:\n`;
-    content += `${'-'.repeat(40)}\n`;
-    Object.entries(report.byTurno).forEach(([turno, total]) => {
-      content += `${turno}: ${total}\n`;
-    });
-    
-    content += `\nTOTALES POR SALA:\n`;
-    content += `${'-'.repeat(40)}\n`;
-    editableItems.forEach(item => {
-      if (report.bySala[item] > 0) {
-        content += `${item}: ${report.bySala[item]}\n`;
-      }
-    });
-    
-    content += `\nTOTALES POR CATEGORÍA RX SOP:\n`;
-    content += `${'-'.repeat(40)}\n`;
-    let hasSopData = false;
-    sopCategories.forEach(cat => {
-      if (report.bySopCategory[cat] > 0) {
-        content += `${cat}: ${report.bySopCategory[cat]}\n`;
-        hasSopData = true;
-      }
-    });
-    if (!hasSopData) {
-      content += `(Sin registros de Rx SOP este mes)\n`;
-    }
-    
-    // Nuevo: Totales de Exámenes Especiales
-    content += `\nTOTALES DE EXÁMENES ESPECIALES:\n`;
-    content += `${'-'.repeat(40)}\n`;
-    const hasRxEspecialData = Object.keys(report.byRxEspecial).length > 0;
-    if (hasRxEspecialData) {
-      Object.entries(report.byRxEspecial).forEach(([examen, total]) => {
-        content += `${examen}: ${total}\n`;
+    // Si es admin, mostrar resumen general
+    if (isAdmin) {
+      content += `TOTAL GENERAL: ${report.totalGeneral}\n`;
+      content += `REGISTROS: ${report.recordCount}\n\n`;
+      
+      content += `TOTALES POR TURNO:\n`;
+      content += `${'-'.repeat(40)}\n`;
+      Object.entries(report.byTurno).forEach(([turno, total]) => {
+        content += `${turno}: ${total}\n`;
       });
-    } else {
-      content += `(Sin exámenes especiales registrados este mes)\n`;
+      
+      content += `\nTOTALES POR SALA:\n`;
+      content += `${'-'.repeat(40)}\n`;
+      editableItems.forEach(item => {
+        if (report.bySala[item] > 0) {
+          content += `${item}: ${report.bySala[item]}\n`;
+        }
+      });
+      
+      content += `\nTOTALES POR CATEGORÍA RX SOP:\n`;
+      content += `${'-'.repeat(40)}\n`;
+      let hasSopData = false;
+      sopCategories.forEach(cat => {
+        if (report.bySopCategory[cat] > 0) {
+          content += `${cat}: ${report.bySopCategory[cat]}\n`;
+          hasSopData = true;
+        }
+      });
+      if (!hasSopData) {
+        content += `(Sin registros de Rx SOP este mes)\n`;
+      }
+      
+      content += `\nTOTALES DE EXÁMENES ESPECIALES:\n`;
+      content += `${'-'.repeat(40)}\n`;
+      const hasRxEspecialData = Object.keys(report.byRxEspecial).length > 0;
+      if (hasRxEspecialData) {
+        Object.entries(report.byRxEspecial).forEach(([examen, total]) => {
+          content += `${examen}: ${total}\n`;
+        });
+      } else {
+        content += `(Sin exámenes especiales registrados este mes)\n`;
+      }
     }
     
     content += `\nDETALLE POR USUARIO:\n`;
     content += `${'='.repeat(60)}\n`;
-    Object.entries(report.byUser).forEach(([user, data]) => {
+    
+    // Filtrar usuarios según rol
+    const usersToExport = Object.entries(report.byUser).filter(([user]) => isAdmin || user === currentUser);
+    
+    usersToExport.forEach(([user, data]) => {
       content += `\nUsuario: ${userFullNames[user] || user}\n`;
+      content += `DNI: ${user}\n`;
       content += `Total: ${data.total}\n`;
       content += `Horas trabajadas: ${data.horasTrabajadas}h\n`;
-      content += `Promedio por hora: ${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}\n`;
-      content += `Turnos - Diurno: ${data.turnos.Diurno}, Mañana: ${data.turnos.Mañana}, Tarde: ${data.turnos.Tarde}, Noche: ${data.turnos.Noche}\n`;
       
       // Agregar categorías SOP si tiene
       const userSopTotal = Object.values(data.sopCategories).reduce((sum, val) => sum + val, 0);
@@ -345,7 +351,6 @@ export default function ProductionSystem() {
         });
       }
       
-      // Nuevo: Agregar exámenes especiales si tiene
       const userRxEspecialTotal = Object.values(data.rxEspeciales || {}).reduce((sum, val) => sum + val, 0);
       if (userRxEspecialTotal > 0) {
         content += `Exámenes Especiales:\n`;
@@ -363,10 +368,11 @@ export default function ProductionSystem() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `reporte-produccion-${reportMonth}.txt`;
+    const fileName = isAdmin ? `reporte-produccion-${reportMonth}.txt` : `reporte-produccion-${userFullNames[currentUser] || currentUser}-${reportMonth}.txt`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    alert('✅ Reporte exportado a TXT');
+    showMessage('✅ Reporte exportado a TXT');
   };
   
   const exportToPDF = () => {
@@ -848,7 +854,7 @@ export default function ProductionSystem() {
     });
     
     const totalGeneral = filtered.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
-    return { byUser, totalGeneral, bySala, byTurno, bySopCategory, byRxEspecial, recordCount: filtered.length };
+    return { byUser, totalGeneral, bySala, byTurno, bySopCategory, byRxEspecial, recordCount: filtered.length, productions: filtered };
   };
   
   if (!isLoggedIn) {
@@ -1579,6 +1585,14 @@ export default function ProductionSystem() {
             </div>
           </div>
           
+          <CalendarReport 
+            currentUser={currentUser}
+            userFullNames={userFullNames}
+            productions={productions}
+            myProductionMonth={myProductionMonth}
+            setMyProductionMonth={setMyProductionMonth}
+          />
+          
           <ReportSection 
             reportMonth={reportMonth}
             setReportMonth={setReportMonth}
@@ -1587,6 +1601,8 @@ export default function ProductionSystem() {
             items={editableItems}
             exportToTXT={exportToTXT}
             exportToPDF={exportToPDF}
+            isAdmin={isAdmin}
+            currentUser={currentUser}
           />
         </div>
       </div>
@@ -1594,7 +1610,541 @@ export default function ProductionSystem() {
   );
 }
 
-function ReportSection({ reportMonth, setReportMonth, report, userFullNames, items, exportToTXT, exportToPDF }) {
+function CalendarReport({ currentUser, userFullNames, productions, myProductionMonth, setMyProductionMonth }) {
+  const [showCalendar, setShowCalendar] = useState(false);
+  
+  const generateCalendarData = () => {
+    // Filtrar producción del usuario y mes actual
+    const filtered = productions.filter(p => 
+      p.user === currentUser && p.date.startsWith(myProductionMonth)
+    );
+    
+    if (filtered.length === 0) return null;
+    
+    // Obtener días del mes
+    const [year, month] = myProductionMonth.split('-');
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
+    
+    // Crear estructura: { "Sala/Turno": { día: cantidad } }
+    const matrix = {};
+    
+    filtered.forEach(p => {
+      const day = parseInt(p.date.split('-')[2]);
+      const key = `${p.sala} / ${p.turno}`;
+      
+      if (!matrix[key]) {
+        matrix[key] = {};
+      }
+      
+      matrix[key][day] = (matrix[key][day] || 0) + Number(p.cantidad);
+    });
+    
+    // Ordenar las filas por turno (Mañana, Tarde, Diurno, Noche)
+    const turnoOrder = { 'Mañana': 1, 'Tarde': 2, 'Diurno': 3, 'Noche': 4 };
+    const sortedMatrix = {};
+    
+    Object.keys(matrix).sort((a, b) => {
+      const turnoA = a.split(' / ')[1];
+      const turnoB = b.split(' / ')[1];
+      const orderA = turnoOrder[turnoA] || 5;
+      const orderB = turnoOrder[turnoB] || 5;
+      
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Si es el mismo turno, ordenar por sala alfabéticamente
+      return a.localeCompare(b);
+    }).forEach(key => {
+      sortedMatrix[key] = matrix[key];
+    });
+    
+    return { matrix: sortedMatrix, days };
+  };
+  
+  const data = generateCalendarData();
+  
+  if (!data) {
+    return (
+      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">📅 Reporte Calendario Individual</h2>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+          <input
+            type="month"
+            value={myProductionMonth}
+            onChange={(e) => setMyProductionMonth(e.target.value)}
+            className="px-4 py-2 border border-cyan-200 rounded-lg"
+          />
+        </div>
+        <p className="text-gray-500 text-center py-8">No hay registros para este mes</p>
+      </div>
+    );
+  }
+  
+  const { matrix, days } = data;
+  const monthName = new Date(myProductionMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+  
+  // Calcular totales por día
+  const dayTotals = {};
+  Object.values(matrix).forEach(dayData => {
+    Object.entries(dayData).forEach(([day, cantidad]) => {
+      dayTotals[day] = (dayTotals[day] || 0) + cantidad;
+    });
+  });
+  
+  // Calcular totales por fila
+  const rowTotals = {};
+  Object.entries(matrix).forEach(([key, dayData]) => {
+    rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
+  });
+  
+  const exportCalendarToPDF = () => {
+    const userName = userFullNames[currentUser] || currentUser;
+    
+    let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte Calendario - ${userName}</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px;
+      font-size: 11px;
+    }
+    h1 { 
+      color: #1e40af; 
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #059669;
+      text-align: center;
+      margin-top: 0;
+      font-size: 16px;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 20px 0;
+      font-size: 10px;
+    }
+    th { 
+      background: #1e40af; 
+      color: white; 
+      padding: 8px 4px; 
+      text-align: center;
+      border: 1px solid #1e3a8a;
+      font-size: 9px;
+    }
+    td { 
+      padding: 6px 4px; 
+      border: 1px solid #cbd5e1;
+      text-align: center;
+    }
+    .sala-col {
+      background: #f1f5f9;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 8px;
+      max-width: 180px;
+      font-size: 9px;
+    }
+    .total-col {
+      background: #dbeafe;
+      font-weight: bold;
+      color: #1e40af;
+    }
+    .total-row td {
+      background: #fef3c7;
+      font-weight: bold;
+      color: #92400e;
+    }
+    .has-value {
+      background: #dcfce7;
+      font-weight: bold;
+      color: #166534;
+    }
+    .empty {
+      background: #f9fafb;
+      color: #9ca3af;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    @media print {
+      .print-button { display: none; }
+      body { margin: 0; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+  
+  <h1 style="text-align: center; color: #1e40af; margin-bottom: 20px;">📅 REPORTE CALENDARIO DE PRODUCCIÓN</h1>
+  
+  <div style="border-top: 3px solid #0284c7; border-bottom: 3px solid #0284c7; padding: 15px 10px; margin: 20px 0; line-height: 1.8;">
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Red Asistencial:</strong> Sabogal
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Servicio:</strong> Radiodiagnóstico y Ecografía
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Especialidad:</strong> Radiología
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Cargo:</strong> Tecnólogo Médico
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">Usuario:</strong> ${userName}
+    </div>
+    <div style="margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #0369a1;">DNI:</strong> ${currentUser}
+    </div>
+    <div style="font-size: 12px;">
+      <strong style="color: #0369a1;">Mes:</strong> ${monthName}
+    </div>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th class="sala-col">Sala / Turno</th>
+`;
+    
+    // Encabezados de días
+    days.forEach(day => {
+      html += `        <th>${day}</th>\n`;
+    });
+    html += `        <th class="total-col">Total</th>\n`;
+    html += `      </tr>\n    </thead>\n    <tbody>\n`;
+    
+    // Filas de datos
+    Object.entries(matrix).forEach(([key, dayData]) => {
+      html += `      <tr>\n`;
+      html += `        <td class="sala-col">${key}</td>\n`;
+      
+      days.forEach(day => {
+        const value = dayData[day] || '';
+        const className = value ? 'has-value' : 'empty';
+        html += `        <td class="${className}">${value || '-'}</td>\n`;
+      });
+      
+      html += `        <td class="total-col">${rowTotals[key]}</td>\n`;
+      html += `      </tr>\n`;
+    });
+    
+    // Fila de totales
+    html += `      <tr class="total-row">\n`;
+    html += `        <td class="sala-col">TOTAL POR DÍA</td>\n`;
+    
+    days.forEach(day => {
+      const total = dayTotals[day] || '';
+      html += `        <td>${total || '-'}</td>\n`;
+    });
+    
+    const grandTotal = Object.values(rowTotals).reduce((sum, val) => sum + val, 0);
+    html += `        <td>${grandTotal}</td>\n`;
+    html += `      </tr>\n`;
+    
+    html += `    </tbody>\n  </table>\n</body>\n</html>`;
+    
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte-calendario-${userName.replace(/\s+/g, '-')}-${myProductionMonth}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  
+  return (
+    <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-700">📅 Reporte Calendario Individual</h2>
+        <button
+          onClick={() => setShowCalendar(!showCalendar)}
+          className="px-3 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition text-sm font-semibold"
+        >
+          {showCalendar ? '📊 Ver Lista' : '📅 Ver Calendario'}
+        </button>
+      </div>
+      
+      <div className="mb-4 flex gap-3 items-end">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+          <input
+            type="month"
+            value={myProductionMonth}
+            onChange={(e) => setMyProductionMonth(e.target.value)}
+            className="px-4 py-2 border border-cyan-200 rounded-lg w-full"
+          />
+        </div>
+        {showCalendar && (
+          <button
+            onClick={exportCalendarToPDF}
+            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold whitespace-nowrap"
+          >
+            📑 Exportar PDF
+          </button>
+        )}
+      </div>
+      
+      {showCalendar ? (
+        <div className="bg-white rounded-lg p-4 overflow-x-auto">
+          <div className="mb-4 pb-3">
+            <div className="border-t-2 border-b-2 border-cyan-600 py-3 mb-3 space-y-1">
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Red Asistencial:</strong> Sabogal
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Servicio:</strong> Radiodiagnóstico y Ecografía
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Especialidad:</strong> Radiología
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Cargo:</strong> Tecnólogo Médico
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Usuario:</strong> {userFullNames[currentUser] || currentUser}
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">DNI:</strong> {currentUser}
+              </div>
+              <div className="text-sm text-gray-700">
+                <strong className="text-cyan-800">Mes:</strong> {monthName}
+              </div>
+            </div>
+          </div>
+          
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr>
+                <th className="bg-cyan-700 text-white p-2 border border-cyan-800 text-left sticky left-0 z-10 min-w-[180px]">
+                  Sala / Turno
+                </th>
+                {days.map(day => (
+                  <th key={day} className="bg-cyan-700 text-white p-2 border border-cyan-800 min-w-[35px]">
+                    {day}
+                  </th>
+                ))}
+                <th className="bg-blue-800 text-white p-2 border border-blue-900 font-bold min-w-[50px]">
+                  Total
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(matrix).map(([key, dayData]) => (
+                <tr key={key} className="hover:bg-cyan-50">
+                  <td className="bg-gray-50 font-semibold p-2 border border-gray-300 text-left sticky left-0 z-10">
+                    {key}
+                  </td>
+                  {days.map(day => {
+                    const value = dayData[day];
+                    return (
+                      <td 
+                        key={day} 
+                        className={`p-2 border border-gray-300 text-center ${
+                          value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
+                        }`}
+                      >
+                        {value || '-'}
+                      </td>
+                    );
+                  })}
+                  <td className="bg-blue-100 font-bold text-blue-800 p-2 border border-blue-300 text-center">
+                    {rowTotals[key]}
+                  </td>
+                </tr>
+              ))}
+              
+              <tr className="bg-yellow-100">
+                <td className="font-bold p-2 border border-gray-300 text-left sticky left-0 z-10">
+                  TOTAL POR DÍA
+                </td>
+                {days.map(day => {
+                  const total = dayTotals[day];
+                  return (
+                    <td 
+                      key={day} 
+                      className={`p-2 border border-gray-300 text-center font-bold ${
+                        total ? 'text-amber-800' : 'text-gray-400'
+                      }`}
+                    >
+                      {total || '-'}
+                    </td>
+                  );
+                })}
+                <td className="bg-amber-200 font-bold text-amber-900 p-2 border border-amber-400 text-center text-base">
+                  {Object.values(rowTotals).reduce((sum, val) => sum + val, 0)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function CalendarTable({ userId, reportMonth, productions }) {
+  // Filtrar producción del usuario específico
+  const filtered = productions.filter(p => p.user === userId);
+  
+  if (filtered.length === 0) {
+    return <p className="text-gray-500 text-sm text-center py-2">Sin registros</p>;
+  }
+  
+  // Obtener días del mes
+  const [year, month] = reportMonth.split('-');
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
+  
+  // Crear estructura: { "Sala/Turno": { día: cantidad } }
+  const matrix = {};
+  
+  filtered.forEach(p => {
+    const day = parseInt(p.date.split('-')[2]);
+    const key = `${p.sala} / ${p.turno}`;
+    
+    if (!matrix[key]) {
+      matrix[key] = {};
+    }
+    
+    matrix[key][day] = (matrix[key][day] || 0) + Number(p.cantidad);
+  });
+  
+  // Ordenar las filas por turno (Mañana, Tarde, Diurno, Noche)
+  const turnoOrder = { 'Mañana': 1, 'Tarde': 2, 'Diurno': 3, 'Noche': 4 };
+  const sortedMatrix = {};
+  
+  Object.keys(matrix).sort((a, b) => {
+    const turnoA = a.split(' / ')[1];
+    const turnoB = b.split(' / ')[1];
+    const orderA = turnoOrder[turnoA] || 5;
+    const orderB = turnoOrder[turnoB] || 5;
+    
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    return a.localeCompare(b);
+  }).forEach(key => {
+    sortedMatrix[key] = matrix[key];
+  });
+  
+  // Calcular totales por día
+  const dayTotals = {};
+  Object.values(sortedMatrix).forEach(dayData => {
+    Object.entries(dayData).forEach(([day, cantidad]) => {
+      dayTotals[day] = (dayTotals[day] || 0) + cantidad;
+    });
+  });
+  
+  // Calcular totales por fila
+  const rowTotals = {};
+  Object.entries(sortedMatrix).forEach(([key, dayData]) => {
+    rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
+  });
+  
+  return (
+    <div className="overflow-x-auto border border-gray-200 rounded-lg">
+      <table className="w-full border-collapse text-xs">
+        <thead>
+          <tr>
+            <th className="bg-cyan-700 text-white p-2 border border-cyan-800 text-left sticky left-0 z-10 min-w-[140px] text-[10px]">
+              Sala / Turno
+            </th>
+            {days.map(day => (
+              <th key={day} className="bg-cyan-700 text-white p-1 border border-cyan-800 min-w-[28px] text-[9px]">
+                {day}
+              </th>
+            ))}
+            <th className="bg-blue-800 text-white p-2 border border-blue-900 font-bold min-w-[45px] text-[10px]">
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(sortedMatrix).map(([key, dayData]) => (
+            <tr key={key} className="hover:bg-cyan-50">
+              <td className="bg-gray-50 font-semibold p-2 border border-gray-300 text-left sticky left-0 z-10 text-[9px]">
+                {key}
+              </td>
+              {days.map(day => {
+                const value = dayData[day];
+                return (
+                  <td 
+                    key={day} 
+                    className={`p-1 border border-gray-300 text-center text-[9px] ${
+                      value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
+                    }`}
+                  >
+                    {value || '-'}
+                  </td>
+                );
+              })}
+              <td className="bg-blue-100 font-bold text-blue-800 p-2 border border-blue-300 text-center text-[10px]">
+                {rowTotals[key]}
+              </td>
+            </tr>
+          ))}
+          
+          <tr className="bg-yellow-100">
+            <td className="font-bold p-2 border border-gray-300 text-left sticky left-0 z-10 text-[9px]">
+              TOTAL DÍA
+            </td>
+            {days.map(day => {
+              const total = dayTotals[day];
+              return (
+                <td 
+                  key={day} 
+                  className={`p-1 border border-gray-300 text-center font-bold text-[9px] ${
+                    total ? 'text-amber-800' : 'text-gray-400'
+                  }`}
+                >
+                  {total || '-'}
+                </td>
+              );
+            })}
+            <td className="bg-amber-200 font-bold text-amber-900 p-2 border border-amber-400 text-center text-[11px]">
+              {Object.values(rowTotals).reduce((sum, val) => sum + val, 0)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ReportSection({ reportMonth, setReportMonth, report, userFullNames, items, exportToTXT, exportToPDF, isAdmin, currentUser }) {
   return (
     <div className="bg-purple-50 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
@@ -1698,12 +2248,14 @@ function ReportSection({ reportMonth, setReportMonth, report, userFullNames, ite
         )}
         
         <h3 className="font-semibold text-gray-800 mb-3">Detalle por Usuario</h3>
-        {Object.entries(report.byUser).map(([user, data]) => {
+        {Object.entries(report.byUser)
+          .filter(([user]) => isAdmin || user === currentUser) // Solo mostrar el usuario actual si no es admin
+          .map(([user, data]) => {
           const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
           return (
           <div key={user} className="mb-4 p-4 border border-gray-200 rounded-lg">
             <div className="font-semibold text-gray-800 mb-2">{userFullNames[user] || user}</div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="p-2 bg-gray-50 rounded">
                 <div className="text-xs text-gray-600">Total</div>
                 <div className="font-semibold text-gray-800">{data.total}</div>
@@ -1712,29 +2264,14 @@ function ReportSection({ reportMonth, setReportMonth, report, userFullNames, ite
                 <div className="text-xs text-gray-600">Horas trabajadas</div>
                 <div className="font-semibold text-gray-800">{data.horasTrabajadas}h</div>
               </div>
-              <div className="p-2 bg-gray-50 rounded">
-                <div className="text-xs text-gray-600">Promedio/hora</div>
-                <div className="font-semibold text-gray-800">{data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</div>
-              </div>
             </div>
             
-            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-              <div className="p-2 bg-green-50 rounded">
-                <div className="text-gray-600">Diurno</div>
-                <div className="font-semibold text-green-700">{data.turnos.Diurno}</div>
-              </div>
-              <div className="p-2 bg-blue-50 rounded">
-                <div className="text-gray-600">Mañana</div>
-                <div className="font-semibold text-blue-700">{data.turnos.Mañana}</div>
-              </div>
-              <div className="p-2 bg-orange-50 rounded">
-                <div className="text-gray-600">Tarde</div>
-                <div className="font-semibold text-orange-700">{data.turnos.Tarde}</div>
-              </div>
-              <div className="p-2 bg-indigo-50 rounded">
-                <div className="text-gray-600">Noche</div>
-                <div className="font-semibold text-indigo-700">{data.turnos.Noche}</div>
-              </div>
+            <div className="mt-3">
+              <CalendarTable 
+                userId={user}
+                reportMonth={reportMonth}
+                productions={report.productions}
+              />
             </div>
             
             {userSopTotal > 0 && (
@@ -1770,7 +2307,7 @@ function ReportSection({ reportMonth, setReportMonth, report, userFullNames, ite
         )})}
         
         
-        {Object.keys(report.byUser).length === 0 && (
+        {Object.entries(report.byUser).filter(([user]) => isAdmin || user === currentUser).length === 0 && (
           <p className="text-gray-500 text-center py-4">No hay datos para este mes</p>
         )}
       </div>
