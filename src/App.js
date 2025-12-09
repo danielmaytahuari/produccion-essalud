@@ -1,4 +1,23 @@
-  import React, { useState, useEffect } from 'react';
+// Importar Firebase
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  getAllUsers,
+  getUserByDNI,
+  saveUser,
+  deleteUser,
+  getAllProduction,
+  getProductionByUser,
+  addProduction,
+  updateProduction,
+  deleteProduction,
+  getSalas,
+  saveSalas,
+  getAdminConfig,
+  saveAdminConfig
+} from './services/dbService';
+
+import React, { useState, useEffect } from 'react';
   import { TrendingUp, Plus } from 'lucide-react';
   
   export default function ProductionSystem() {
