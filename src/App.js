@@ -279,7 +279,7 @@ export default function ProductionSystem() {
     setRecoveryDNI('');
   };
   
-  const exportToTXT = () => {
+  const ToTXT = () => {
     const report = generateReport();
     let content = `REPORTE DE PRODUCCIÓN - ${reportMonth}\n`;
     content += `${'='.repeat(60)}\n\n`;
@@ -332,9 +332,9 @@ export default function ProductionSystem() {
     content += `${'='.repeat(60)}\n`;
     
     // Filtrar usuarios según rol
-    const usersToExport = Object.entries(report.byUser).filter(([user]) => isAdmin || user === currentUser);
+    const usersTo = Object.entries(report.byUser).filter(([user]) => isAdmin || user === currentUser);
     
-    usersToExport.forEach(([user, data]) => {
+    usersTo.forEach(([user, data]) => {
       content += `\nUsuario: ${userFullNames[user] || user}\n`;
       content += `DNI: ${user}\n`;
       content += `Total: ${data.total}\n`;
@@ -372,17 +372,16 @@ export default function ProductionSystem() {
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    showMessage('✅ Reporte exportado a TXT');
+    showMessage('✅ Reporte ado a TXT');
   };
   
-  const exportToPDF = () => {
-    console.log('exportToPDF llamado'); // Para debug
-    
-    const report = generateReport();
-    const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
-    
-    // Crear el contenido HTML mejorado para impresión directa
-    const content = `<!DOCTYPE html>
+const exportToPDF = () => {
+  console.log('exportToPDF llamado - isAdmin:', isAdmin);
+  
+  const report = generateReport();
+  const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
+  
+  let content = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -498,8 +497,13 @@ export default function ProductionSystem() {
 </head>
 <body>
   <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-  
-  <h1>📊 Reporte de Producción - ${reportMonth}</h1>
+`;
+
+  if (isAdmin) {
+    console.log('Generando reporte para ADMIN');
+    
+    content += `
+  <h1>📊 Reporte de Producción General - ${reportMonth}</h1>
   
   <div class="summary">
     <div class="stat">
@@ -566,7 +570,7 @@ export default function ProductionSystem() {
   </table>
   ` : ''}
   
-  <h2>👥 Detalle por Usuario</h2>
+  <h2>👥 Resumen por Usuario</h2>
   ${Object.entries(report.byUser).map(([user, data]) => {
     const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
     return `
@@ -626,7 +630,34 @@ export default function ProductionSystem() {
       ` : ''}
     </div>
   `}).join('')}
+`;
+    
+    console.log('Agregando calendarios individuales para', Object.keys(report.byUser).length, 'usuarios');
+    Object.keys(report.byUser).forEach(user => {
+      const calHtml = generateCalendarHTML(user, userFullNames[user] || user);
+      if (calHtml) {
+        content += calHtml;
+      }
+    });
+    
+  } else {
+    console.log('Generando calendario individual para usuario:', currentUser);
+    const userName = userFullNames[currentUser] || currentUser;
+    const calHtml = generateCalendarHTML(currentUser, userName);
+    
+    if (calHtml) {
+      content += calHtml;
+    } else {
+      content += `
+      <div style="padding: 40px; text-align: center;">
+        <h2 style="color: #DC2626;">⚠️ Sin datos</h2>
+        <p style="color: #6B7280;">No hay registros de producción para este mes.</p>
+      </div>
+      `;
+    }
+  }
   
+  content += `
   <div class="footer">
     <p><strong>Sistema de Producción Diaria - EsSalud</strong></p>
     <p>Reporte generado el ${new Date().toLocaleString('es-PE', { 
@@ -639,26 +670,34 @@ export default function ProductionSystem() {
   </div>
 </body>
 </html>`;
-    
-    try {
-      // Crear y descargar el archivo HTML
-      const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte-produccion-${reportMonth}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      alert('✅ Reporte descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML descargado\n2. Click en el botón rojo "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
-    } catch (error) {
-      console.error('Error al exportar:', error);
-      alert('❌ Error al exportar el reporte: ' + error.message);
-    }
-  };
   
+  try {
+    const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    const fileName = isAdmin 
+      ? `reporte-produccion-completo-${reportMonth}.html`
+      : `reporte-calendario-${userFullNames[currentUser] || currentUser}-${reportMonth}.html`;
+    
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    const mensaje = isAdmin 
+      ? '✅ Reporte completo descargado!\n\nIncluye:\n✔️ Reporte general de producción\n✔️ Resumen por usuarios\n✔️ Calendarios individuales de TODOS los usuarios\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"'
+      : '✅ Tu reporte individual descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"';
+    
+    alert(mensaje);
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    alert('❌ Error al exportar el reporte: ' + error.message);
+  }
+};
+    
   const deleteUser = (dni) => {
     console.log('deleteUser llamado para:', dni);
     
