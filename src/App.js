@@ -1580,7 +1580,7 @@ const handleChangePassword = () => {
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-bold"
                 >
                  <button
-                   onClick={() => setShowChangePassword(true)}
+                   onClick={(e) => { e.preventDefault(); setShowChangePassword(true); }}
                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
                 >
                 🔑 Cambiar Contraseña
