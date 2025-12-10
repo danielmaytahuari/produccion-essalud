@@ -84,7 +84,8 @@ import React, { useState, useEffect } from 'react';
     const [showAllProductions, setShowAllProductions] = useState(false);
     const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
-    
+    const [editingUser, setEditingUser] = useState(null);
+    const [editUserData, setEditUserData] = useState({ fullname: '', password: '' });
     // Función helper para mostrar mensajes
     const showMessage = (message, duration = 3000) => {
       setSuccessMessageText(message);
@@ -859,6 +860,30 @@ const exportToPDF = () => {
       });
       setShowConfirmDialog(true);
     };
+
+    const handleEditUser = (dni) => {
+  const fullname = userFullNames[dni] || '';
+  const password = userPasswords[dni] || '';
+  setEditUserData({ fullname, password });
+  setEditingUser(dni);
+};
+
+const handleSaveUserEdit = () => {
+  if (!editingUser) return;
+  
+  const updatedFullNames = { ...userFullNames, [editingUser]: editUserData.fullname };
+  setUserFullNames(updatedFullNames);
+  localStorage.setItem('production-fullnames', JSON.stringify(updatedFullNames));
+  
+  const updatedPasswords = { ...userPasswords, [editingUser]: editUserData.password };
+  setUserPasswords(updatedPasswords);
+  localStorage.setItem('production-passwords', JSON.stringify(updatedPasswords));
+  
+  setEditingUser(null);
+  setSuccessMessageText('✅ Usuario actualizado correctamente');
+  setShowSuccessMessage(true);
+  setTimeout(() => setShowSuccessMessage(false), 3000);
+};
     
     const resetUserPassword = (dni) => {
       console.log('resetUserPassword llamado para:', dni);
@@ -1534,6 +1559,17 @@ const exportToPDF = () => {
                               }}
                               className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
                             >
+
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleEditUser(user);
+                              }}
+                              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                          >
+                           ✏️ Editar
+                          </button>
                               🔑 Reset
                             </button>
                             <button
@@ -1590,6 +1626,48 @@ const exportToPDF = () => {
                 </div>
               </div>
             )}
+{editingUser && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <h3 className="text-xl font-bold mb-4">Editar Usuario: {editingUser}</h3>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Nombre Completo</label>
+        <input
+          type="text"
+          value={editUserData.fullname}
+          onChange={(e) => setEditUserData({ ...editUserData, fullname: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Contraseña</label>
+        <input
+          type="text"
+          value={editUserData.password}
+          onChange={(e) => setEditUserData({ ...editUserData, password: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+      
+      <div className="flex gap-2">
+        <button
+          onClick={handleSaveUserEdit}
+          className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Guardar
+        </button>
+        <button
+          onClick={() => setEditingUser(null)}
+          className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
             
             {showAdminPanel && isAdmin && (
               <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-cyan-200">
@@ -1677,7 +1755,8 @@ const exportToPDF = () => {
                 </div>
               </div>
             )}
-            
+
+            {currentUser !== adminUser && (
             <div className="bg-green-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">Registrar Producción</h2>
               <ProductionForm 
@@ -1687,7 +1766,9 @@ const exportToPDF = () => {
                 onSubmit={addProduction}
               />
             </div>
-            
+            )}
+
+            {currentUser !== adminUser && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">Mi Producción del Mes</h2>
               
@@ -1749,7 +1830,9 @@ const exportToPDF = () => {
                 )}
               </div>
             </div>
-            
+            )}
+
+            {currentUser !== adminUser && (
             <CalendarReport 
               currentUser={currentUser}
               userFullNames={userFullNames}
@@ -1757,7 +1840,9 @@ const exportToPDF = () => {
               myProductionMonth={myProductionMonth}
               setMyProductionMonth={setMyProductionMonth}
             />
-            
+            )}
+
+            {currentUser !== adminUser && (
             <ReportSection 
               reportMonth={reportMonth}
               setReportMonth={setReportMonth}
@@ -1769,6 +1854,7 @@ const exportToPDF = () => {
               isAdmin={isAdmin}
               currentUser={currentUser}
             />
+            )}
           </div>
         </div>
       </div>
