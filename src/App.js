@@ -1757,7 +1757,7 @@ const handleSaveUserEdit = () => {
               </div>
             )}
 
-            {currentUser !== adminUser && (
+            {!isAdmin && (
             <div className="bg-green-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">Registrar Producción</h2>
               <ProductionForm 
@@ -1769,7 +1769,7 @@ const handleSaveUserEdit = () => {
             </div>
             )}
 
-            {currentUser !== adminUser && (
+            {!isAdmin && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">Mi Producción del Mes</h2>
               
@@ -1833,7 +1833,7 @@ const handleSaveUserEdit = () => {
             </div>
             )}
 
-            {currentUser !== adminUser && (
+            {!isAdmin && (
             <CalendarReport 
               currentUser={currentUser}
               userFullNames={userFullNames}
@@ -1843,7 +1843,7 @@ const handleSaveUserEdit = () => {
             />
             )}
 
-            {currentUser !== adminUser && (
+            {!isAdmin && (
             <ReportSection 
               reportMonth={reportMonth}
               setReportMonth={setReportMonth}
