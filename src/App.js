@@ -85,6 +85,12 @@ import React, { useState, useEffect } from 'react';
     const [showAllProductions, setShowAllProductions] = useState(false);
     const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [changePasswordData, setChangePasswordData] = useState({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+});
     const [editingUser, setEditingUser] = useState(null);
     const [editUserData, setEditUserData] = useState({ fullname: '', password: '' });
     // Función helper para mostrar mensajes
@@ -885,6 +891,57 @@ const handleSaveUserEdit = () => {
   setShowSuccessMessage(true);
   setTimeout(() => setShowSuccessMessage(false), 3000);
 };
+
+const handleChangePassword = () => {
+  // Validar que todos los campos estén llenos
+  if (!changePasswordData.currentPassword || !changePasswordData.newPassword || !changePasswordData.confirmPassword) {
+    setSuccessMessageText('❌ Por favor completa todos los campos');
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+    return;
+  }
+  
+  // Verificar que la contraseña actual sea correcta
+  if (userPasswords[currentUser] !== changePasswordData.currentPassword) {
+    setSuccessMessageText('❌ La contraseña actual es incorrecta');
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+    return;
+  }
+  
+  // Verificar que la nueva contraseña tenga al menos 4 caracteres
+  if (changePasswordData.newPassword.length < 4) {
+    setSuccessMessageText('❌ La nueva contraseña debe tener al menos 4 caracteres');
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+    return;
+  }
+  
+  // Verificar que las contraseñas coincidan
+  if (changePasswordData.newPassword !== changePasswordData.confirmPassword) {
+    setSuccessMessageText('❌ Las contraseñas no coinciden');
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+    return;
+  }
+  
+  // Actualizar la contraseña
+  const updatedPasswords = { ...userPasswords, [currentUser]: changePasswordData.newPassword };
+  setUserPasswords(updatedPasswords);
+  localStorage.setItem('production-passwords', JSON.stringify(updatedPasswords));
+  
+  // Cerrar modal y limpiar datos
+  setShowChangePassword(false);
+  setChangePasswordData({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  
+  setSuccessMessageText('✅ Contraseña cambiada exitosamente');
+  setShowSuccessMessage(true);
+  setTimeout(() => setShowSuccessMessage(false), 3000);
+};
     
     const resetUserPassword = (dni) => {
       console.log('resetUserPassword llamado para:', dni);
@@ -1522,7 +1579,14 @@ const handleSaveUserEdit = () => {
                   onClick={handleLogout}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-bold"
                 >
-                  🚪 Cerrar Sesión
+                 <button
+                   onClick={() => setShowChangePassword(true)}
+                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+                >
+                🔑 Cambiar Contraseña
+                </button> 
+                    
+                    🚪 Cerrar Sesión
                 </button>
               </div>
             </div>
@@ -1661,6 +1725,69 @@ const handleSaveUserEdit = () => {
         </button>
         <button
           onClick={() => setEditingUser(null)}
+          className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{showChangePassword && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <h3 className="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h3>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Contraseña Actual</label>
+        <input
+          type="password"
+          value={changePasswordData.currentPassword}
+          onChange={(e) => setChangePasswordData({ ...changePasswordData, currentPassword: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          placeholder="Ingresa tu contraseña actual"
+        />
+      </div>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Nueva Contraseña</label>
+        <input
+          type="password"
+          value={changePasswordData.newPassword}
+          onChange={(e) => setChangePasswordData({ ...changePasswordData, newPassword: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          placeholder="Mínimo 4 caracteres"
+        />
+      </div>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Confirmar Nueva Contraseña</label>
+        <input
+          type="password"
+          value={changePasswordData.confirmPassword}
+          onChange={(e) => setChangePasswordData({ ...changePasswordData, confirmPassword: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          placeholder="Repite la nueva contraseña"
+        />
+      </div>
+      
+      <div className="flex gap-2">
+        <button
+          onClick={handleChangePassword}
+          className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Cambiar
+        </button>
+        <button
+          onClick={() => {
+            setShowChangePassword(false);
+            setChangePasswordData({
+              currentPassword: '',
+              newPassword: '',
+              confirmPassword: ''
+            });
+          }}
           className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
         >
           Cancelar
