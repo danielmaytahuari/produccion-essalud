@@ -213,8 +213,8 @@ import React, { useState, useEffect } from 'react';
       showMessage(`¡Usuario registrado exitosamente!\n\n👤 ${userName}\n🆔 DNI: ${userDNI}\n\nAhora puedes iniciar sesión`, 5000);
     };
     
-    const addProduction = (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null) => {
-      if (sala === 'Rx especiales' && rxEspeciales) {
+    const addProduction = (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null, procedimientos = null) => {
+        if (sala === 'Rx especiales' && rxEspeciales) {
         const newProds = rxEspeciales
           .filter(esp => esp.examen.trim() && esp.cantidad)
           .map(esp => ({
@@ -226,6 +226,7 @@ import React, { useState, useEffect } from 'react';
             cantidad: parseFloat(esp.cantidad),
             rxEspecialExamen: esp.examen,
             timestamp: new Date().toISOString()
+        procedimientos: procedimientos,
           }));
         
         setProductions([...productions, ...newProds]);
@@ -241,6 +242,7 @@ import React, { useState, useEffect } from 'react';
         turno,
         cantidad: parseFloat(cantidad),
         sopCategory: sopCategory || null,
+        procedimientos: procedimientos || null,
         timestamp: new Date().toISOString()
       };
       
@@ -2707,6 +2709,11 @@ const handleChangePassword = () => {
       { examen: '', cantidad: '' },
       { examen: '', cantidad: '' }
     ]);
+    const [procedimientos, setProcedimientos] = useState([
+  { nombre: '', cantidad: '' },
+  { nombre: '', cantidad: '' },
+  { nombre: '', cantidad: '' }
+]);
     
     const handleSubmit = () => {
       if (!sala || !turno) {
@@ -2725,11 +2732,12 @@ const handleChangePassword = () => {
           alert('Por favor ingresa al menos un examen especial');
           return;
         }
-        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales);
+        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos);
         if (success) {
           setSala('');
           setTurno('');
           setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+          setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
         }
         return;
       }
@@ -2868,6 +2876,42 @@ const handleChangePassword = () => {
               </div>
             ))}
           </div>
+<div className="bg-green-50 p-4 rounded-lg mt-4">
+  <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
+  {procedimientos.map((proc, index) => (
+    <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
+        <input
+          type="text"
+          value={proc.nombre}
+          onChange={(e) => {
+            const newProc = [...procedimientos];
+            newProc[index].nombre = e.target.value;
+            setProcedimientos(newProc);
+          }}
+          placeholder="Nombre del procedimiento"
+          className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+        <input
+          type="number"
+          value={proc.cantidad}
+          onChange={(e) => {
+            const newProc = [...procedimientos];
+            newProc[index].cantidad = e.target.value;
+            setProcedimientos(newProc);
+          }}
+          placeholder="0"
+          className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+        />
+      </div>
+    </div>
+  ))}
+</div>
+
         )}
         
         <button
