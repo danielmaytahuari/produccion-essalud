@@ -225,7 +225,7 @@ import React, { useState, useEffect } from 'react';
             turno,
             cantidad: parseFloat(esp.cantidad),
             rxEspecialExamen: esp.examen,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         procedimientos: procedimientos,
           }));
         
