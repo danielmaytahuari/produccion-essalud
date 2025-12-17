@@ -2906,13 +2906,13 @@ const handleChangePassword = () => {
           }}
           placeholder="0"
           className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
-        />
+         />
       </div>
     </div>
   ))}
 </div>
-
-        )}
+</div>
+)}
         
         <button
           onClick={handleSubmit}
