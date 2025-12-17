@@ -2839,86 +2839,79 @@ const handleChangePassword = () => {
             </div>
           )}
         </div>
-        
-        {sala === 'Rx especiales' && (
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
-            {rxEspeciales.map((esp, index) => (
-              <div key={index} className="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
-                  <input
-                    type="text"
-                    value={esp.examen}
-                    onChange={(e) => {
-                      const newEsp = [...rxEspeciales];
-                      newEsp[index].examen = e.target.value;
-                      setRxEspeciales(newEsp);
-                    }}
-                    placeholder="Nombre del examen"
-                    className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
-                  <input
-                    type="number"
-                    value={esp.cantidad}
-                    onChange={(e) => {
-                      const newEsp = [...rxEspeciales];
-                      newEsp[index].cantidad = e.target.value;
-                      setRxEspeciales(newEsp);
-                    }}
-                    placeholder="0"
-                    className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
-                  />
-                </div>
-              </div>
-            ))}
+
+    {sala === 'Rx especiales' && (
+  <div>
+    <div className="bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
+      {rxEspeciales.map((esp, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
+            <input
+              type="text"
+              value={esp.examen}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].examen = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="Nombre del examen"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
           </div>
-<div className="bg-green-50 p-4 rounded-lg mt-4">
-  <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
-  {procedimientos.map((proc, index) => (
-    <div key={index} className="grid grid-cols-2 gap-3 mb-3">
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
-        <input
-          type="text"
-          value={proc.nombre}
-          onChange={(e) => {
-            const newProc = [...procedimientos];
-            newProc[index].nombre = e.target.value;
-            setProcedimientos(newProc);
-          }}
-          placeholder="Nombre del procedimiento"
-          className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
-        <input
-          type="number"
-          value={proc.cantidad}
-          onChange={(e) => {
-            const newProc = [...procedimientos];
-            newProc[index].cantidad = e.target.value;
-            setProcedimientos(newProc);
-          }}
-          placeholder="0"
-          className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
-         />
-      </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={esp.cantidad}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].cantidad = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
     </div>
-  ))}
-</div>
+    
+    <div className="bg-green-50 p-4 rounded-lg mt-4">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
+      {procedimientos.map((proc, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
+            <input
+              type="text"
+              value={proc.nombre}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].nombre = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="Nombre del procedimiento"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={proc.cantidad}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].cantidad = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
 )}
-        
-        <button
-          onClick={handleSubmit}
-          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-        >
-          Registrar Producción
-        </button>
-      </div>
-    );
-  }
