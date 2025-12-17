@@ -2826,22 +2826,8 @@ const handleChangePassword = () => {
             </select>
           </div>
           
-          {sala !== 'Rx especiales' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-              <input
-                type="number"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-                placeholder="0"
-                className="w-full px-4 py-2 border border-green-200 rounded-lg"
-              />
-            </div>
-          )}
-        </div>
-
-    {sala === 'Rx especiales' && (
-  <div>
+       {sala === 'Rx especiales' && (
+         <div>
     <div className="bg-blue-50 p-4 rounded-lg">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
       {rxEspeciales.map((esp, index) => (
