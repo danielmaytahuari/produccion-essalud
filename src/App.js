@@ -1600,7 +1600,6 @@ const handleChangePassword = () => {
                   <div className="bg-white rounded-lg p-4">
                     <h3 className="font-semibold text-gray-800 mb-3">👥 Gestión de Usuarios</h3>
                     
-                    {/* Botón de prueba */}
                     <button
                       onClick={() => {
                         console.log('BOTÓN DE PRUEBA CLICKEADO');
@@ -1616,25 +1615,6 @@ const handleChangePassword = () => {
                         <div key={user} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                           <span className="text-sm font-medium">{userFullNames[user] || user}</span>
                           <div className="flex gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('🔑 Reset clickeado para:', user);
-                                resetUserPassword(user);
-                              }}
-                              className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                            >
-
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleEditUser(user);
-                              }}
-                              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                          >
-                           <div className="flex gap-2">
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -1672,7 +1652,6 @@ const handleChangePassword = () => {
                       ))}
                     </div>
                   </div>
-                  
                   <div className="bg-white rounded-lg p-4">
                     <h3 className="font-semibold text-gray-800 mb-3">🏥 Gestión de Salas</h3>
                     <div className="mb-3">
