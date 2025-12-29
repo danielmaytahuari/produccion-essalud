@@ -1578,18 +1578,17 @@ const handleChangePassword = () => {
                   </button>
                 )}
                 <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-bold"
-                >
-                 <button
-                   onClick={(e) => { e.preventDefault(); setShowChangePassword(true); }}
-                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
-                >
-                🔑 Cambiar Contraseña
-                </button> 
-                    
-                    🚪 Cerrar Sesión
-                </button>
+              onClick={(e) => { e.preventDefault(); setShowChangePassword(true); }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+            >
+              🔑 Cambiar Contraseña
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-bold"
+            >
+              🚪 Cerrar Sesión
+            </button>
               </div>
             </div>
             
@@ -1635,8 +1634,26 @@ const handleChangePassword = () => {
                               }}
                               className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
                           >
-                           ✏️ Editar
-                          </button>
+                           <div className="flex gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleEditUser(user);
+                              }}
+                              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('🔑 Reset clickeado para:', user);
+                                resetUserPassword(user);
+                              }}
+                              className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                            >
                               🔑 Reset
                             </button>
                             <button
