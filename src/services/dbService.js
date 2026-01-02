@@ -69,10 +69,12 @@ export const saveUser = async (userData) => {
 // Eliminar usuario
 export const deleteUser = async (dni) => {
   try {
-    await deleteDoc(doc(db, 'users', dni));
-    return { success: true };
+    const dniString = String(dni);  // ✅ Convertir a string
+    const userRef = doc(db, 'users', dniString);
+    await deleteDoc(userRef);
+    return true;
   } catch (error) {
-    console.error('Error al eliminar usuario:', error);
+    console.error('Error en deleteUser:', error);
     throw error;
   }
 };
@@ -137,21 +139,28 @@ export const getProductionByMonth = async (year, month) => {
 // Agregar registro de producción
 export const addProduction = async (productionData) => {
   try {
-    const docRef = await addDoc(collection(db, 'production'), productionData);
-    return { success: true, id: docRef.id };
+    const idString = String(productionData.id);  // ✅ Convertir a string
+    const prodRef = doc(db, 'production', idString);
+    await setDoc(prodRef, {
+      ...productionData,
+      id: idString  // Guardar también como string
+    });
+    return { ...productionData, id: idString };
   } catch (error) {
-    console.error('Error al agregar producción:', error);
+    console.error('Error en addProduction:', error);
     throw error;
   }
 };
 
 // Actualizar registro de producción
-export const updateProduction = async (id, productionData) => {
+export const updateProduction = async (id, data) => {
   try {
-    await updateDoc(doc(db, 'production', id), productionData);
-    return { success: true };
+    const idString = String(id);  // ✅ Convertir a string
+    const prodRef = doc(db, 'production', idString);
+    await updateDoc(prodRef, data);
+    return data;
   } catch (error) {
-    console.error('Error al actualizar producción:', error);
+    console.error('Error en updateProduction:', error);
     throw error;
   }
 };
@@ -159,10 +168,12 @@ export const updateProduction = async (id, productionData) => {
 // Eliminar registro de producción
 export const deleteProduction = async (id) => {
   try {
-    await deleteDoc(doc(db, 'production', id));
-    return { success: true };
+    const idString = String(id);  // ✅ Convertir a string
+    const prodRef = doc(db, 'production', idString);
+    await deleteDoc(prodRef);
+    return true;
   } catch (error) {
-    console.error('Error al eliminar producción:', error);
+    console.error('Error en deleteProduction:', error);
     throw error;
   }
 };
