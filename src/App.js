@@ -908,8 +908,72 @@ const exportAdminGeneralPDF = (targetMonth) => {
     return;
   }
   
-  // Generar reporte usando la función existente
-  const report = generateReport();
+// Generar reporte para el mes específico
+  const byUser = {};
+  const byTurno = { 'Diurno': 0, 'Mañana': 0, 'Tarde': 0, 'Noche': 0 };
+  const bySala = {};
+  const bySopCategory = {};
+  const byRxEspecial = {};
+  
+  editableItems.forEach(item => { bySala[item] = 0; });
+  sopCategories.forEach(cat => { bySopCategory[cat] = 0; });
+  
+  filtered.forEach(p => {
+    if (!byUser[p.user]) {
+      byUser[p.user] = { 
+        total: 0, 
+        horasTrabajadas: 0,
+        turnosPorFecha: {},
+        turnos: { 'Diurno': 0, 'Mañana': 0, 'Tarde': 0, 'Noche': 0 }, 
+        salas: {},
+        sopCategories: {},
+        rxEspeciales: {}
+      };
+      editableItems.forEach(item => { byUser[p.user].salas[item] = 0; });
+      sopCategories.forEach(cat => { byUser[p.user].sopCategories[cat] = 0; });
+    }
+    
+    const cantidad = Number(p.cantidad) || 0;
+    byUser[p.user].total += cantidad;
+    
+    if (p.turno && p.date) {
+      const fechaTurnoKey = `${p.date}-${p.turno}`;
+      
+      if (!byUser[p.user].turnosPorFecha[fechaTurnoKey]) {
+        byUser[p.user].turnosPorFecha[fechaTurnoKey] = true;
+        
+        if (p.turno === 'Mañana' || p.turno === 'Tarde') {
+          byUser[p.user].horasTrabajadas += 6;
+        } else if (p.turno === 'Diurno' || p.turno === 'Noche') {
+          byUser[p.user].horasTrabajadas += 12;
+        }
+      }
+    }
+    
+    if (p.turno) {
+      byUser[p.user].turnos[p.turno] = (byUser[p.user].turnos[p.turno] || 0) + cantidad;
+      byTurno[p.turno] = (byTurno[p.turno] || 0) + cantidad;
+    }
+    
+    if (p.sala) {
+      byUser[p.user].salas[p.sala] = (byUser[p.user].salas[p.sala] || 0) + cantidad;
+      bySala[p.sala] = (bySala[p.sala] || 0) + cantidad;
+    }
+    
+    if (p.sopCategory) {
+      byUser[p.user].sopCategories[p.sopCategory] = (byUser[p.user].sopCategories[p.sopCategory] || 0) + cantidad;
+      bySopCategory[p.sopCategory] = (bySopCategory[p.sopCategory] || 0) + cantidad;
+    }
+    
+    if (p.rxEspecialExamen) {
+      const examenNombre = p.rxEspecialExamen;
+      byRxEspecial[examenNombre] = (byRxEspecial[examenNombre] || 0) + cantidad;
+      byUser[p.user].rxEspeciales[examenNombre] = (byUser[p.user].rxEspeciales[examenNombre] || 0) + cantidad;
+    }
+  });
+  
+  const totalGeneral = filtered.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+  const report = { byUser, totalGeneral, bySala, byTurno, bySopCategory, byRxEspecial, recordCount: filtered.length };
   const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
   
   let content = `<!DOCTYPE html>
