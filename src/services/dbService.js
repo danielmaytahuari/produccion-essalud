@@ -47,16 +47,25 @@ export const getUserByDNI = async (dni) => {
 };
 
 // Crear o actualizar usuario
-export const saveUser = async (dni, userData) => {
+export const saveUser = async (userData) => {
   try {
-    await setDoc(doc(db, 'users', dni), userData, { merge: true });
-    return { success: true };
+    // Asegurar que DNI sea string
+    const dniString = String(userData.dni);
+    
+    const userRef = doc(db, 'users', dniString);
+    await setDoc(userRef, {
+      dni: dniString,
+      fullname: userData.fullname,
+      password: userData.password,
+      createdAt: new Date().toISOString()
+    });
+    
+    return userData;
   } catch (error) {
-    console.error('Error al guardar usuario:', error);
+    console.error('Error en saveUser:', error);
     throw error;
   }
 };
-
 // Eliminar usuario
 export const deleteUser = async (dni) => {
   try {
