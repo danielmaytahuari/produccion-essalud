@@ -155,10 +155,17 @@ export const addProduction = async (productionData) => {
 // Actualizar registro de producción
 export const updateProduction = async (id, data) => {
   try {
-    const idString = String(id);  // ✅ Convertir a string
+    const idString = String(id);
     const prodRef = doc(db, 'production', idString);
-    await updateDoc(prodRef, data);
-    return data;
+    
+    // Usar setDoc con merge:true para crear si no existe
+    await setDoc(prodRef, {
+      ...data,
+      id: idString,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });  // ✅ Crea o actualiza
+    
+    return { ...data, id: idString };
   } catch (error) {
     console.error('Error en updateProduction:', error);
     throw error;
