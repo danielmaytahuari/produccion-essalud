@@ -833,6 +833,365 @@ const exportToPDF = () => {
     alert('❌ Error al exportar el reporte: ' + error.message);
   }
 };
+
+    const exportAdminIndividualPDF = (userId, targetMonth) => {
+  const userName = userFullNames[userId] || userId;
+  const calHtml = generateCalendarHTML(userId, userName, targetMonth);
+  
+  if (!calHtml) {
+    alert('❌ No hay registros para este usuario en el mes seleccionado');
+    return;
+  }
+  
+  let content = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte Individual - ${userName}</title>
+  <style>
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none; }
+    }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 30px;
+      background: white;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #EF4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .print-button:hover {
+      background: #DC2626;
+    }
+    @media print {
+      .print-button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+  ${calHtml}
+</body>
+</html>`;
+  
+  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reporte-individual-${userName.replace(/\s+/g, '-')}-${targetMonth}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  alert('✅ Reporte individual descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
+};
+
+const exportAdminGeneralPDF = (targetMonth) => {
+  const filtered = productions.filter(p => p.date.startsWith(targetMonth));
+  
+  if (filtered.length === 0) {
+    alert('❌ No hay registros para el mes seleccionado');
+    return;
+  }
+  
+  // Generar reporte usando la función existente
+  const report = generateReport();
+  const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
+  
+  let content = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte General - ${targetMonth}</title>
+  <style>
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none; }
+    }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 30px;
+      background: white;
+    }
+    h1 { 
+      color: #4F46E5; 
+      border-bottom: 3px solid #4F46E5; 
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 { 
+      color: #7C3AED; 
+      margin-top: 30px; 
+      border-bottom: 2px solid #E9D5FF; 
+      padding-bottom: 5px;
+      page-break-after: avoid;
+    }
+    .summary { 
+      background: #EEF2FF; 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin: 20px 0;
+      display: flex;
+      gap: 30px;
+    }
+    .user-section { 
+      background: #F9FAFB; 
+      padding: 15px; 
+      margin: 15px 0; 
+      border-left: 4px solid #4F46E5;
+      page-break-inside: avoid;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 15px 0;
+      page-break-inside: avoid;
+    }
+    th { 
+      background: #4F46E5; 
+      color: white; 
+      padding: 10px; 
+      text-align: left;
+      font-weight: bold;
+    }
+    td { 
+      padding: 8px; 
+      border-bottom: 1px solid #E5E7EB;
+    }
+    tr:nth-child(even) { 
+      background: #F9FAFB; 
+    }
+    .stat { 
+      flex: 1;
+    }
+    .stat-label { 
+      color: #6B7280; 
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    .stat-value { 
+      color: #1F2937; 
+      font-size: 24px; 
+      font-weight: bold;
+    }
+    .sop-section { 
+      background: #FEF3C7; 
+      padding: 10px; 
+      border-radius: 5px; 
+      margin: 10px 0; 
+      border-left: 4px solid #F59E0B;
+    }
+    .footer {
+      margin-top: 50px; 
+      padding-top: 20px; 
+      border-top: 2px solid #E5E7EB; 
+      color: #6B7280; 
+      font-size: 12px;
+      text-align: center;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #EF4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .print-button:hover {
+      background: #DC2626;
+    }
+    @media print {
+      .print-button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+  
+  <h1>📊 Reporte de Producción General - ${targetMonth}</h1>
+  
+  <div class="summary">
+    <div class="stat">
+      <div class="stat-label">Total General</div>
+      <div class="stat-value">${report.totalGeneral}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total de Registros</div>
+      <div class="stat-value">${report.recordCount}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Usuarios Activos</div>
+      <div class="stat-value">${Object.keys(report.byUser).length}</div>
+    </div>
+  </div>
+  
+  <h2>📅 Totales por Turno</h2>
+  <table>
+    <tr><th>Turno</th><th>Total</th><th>Porcentaje</th></tr>
+    ${Object.entries(report.byTurno).map(([turno, total]) => 
+      `<tr>
+        <td><strong>${turno}</strong></td>
+        <td><strong>${total}</strong></td>
+        <td>${report.totalGeneral > 0 ? ((total / report.totalGeneral) * 100).toFixed(1) : 0}%</td>
+      </tr>`
+    ).join('')}
+  </table>
+  
+  <h2>🏥 Totales por Sala</h2>
+  <table>
+    <tr><th>Sala</th><th>Total</th><th>Porcentaje</th></tr>
+    ${editableItems.filter(item => report.bySala[item] > 0).map(item => 
+      `<tr>
+        <td>${item}</td>
+        <td><strong>${report.bySala[item]}</strong></td>
+        <td>${report.totalGeneral > 0 ? ((report.bySala[item] / report.totalGeneral) * 100).toFixed(1) : 0}%</td>
+      </tr>`
+    ).join('')}
+  </table>
+  
+  ${hasSopData ? `
+  <h2>🔬 Totales por Categoría Rx SOP</h2>
+  <table>
+    <tr><th>Categoría</th><th>Total</th></tr>
+    ${sopCategories.filter(cat => report.bySopCategory[cat] > 0).map(cat => 
+      `<tr>
+        <td>${cat}</td>
+        <td><strong>${report.bySopCategory[cat]}</strong></td>
+      </tr>`
+    ).join('')}
+  </table>
+  ` : ''}
+  
+  ${Object.keys(report.byRxEspecial).length > 0 ? `
+  <h2>🔬 Totales de Exámenes Especiales</h2>
+  <table>
+    <tr><th>Examen</th><th>Total</th></tr>
+    ${Object.entries(report.byRxEspecial).map(([examen, total]) => 
+      `<tr>
+        <td>${examen}</td>
+        <td><strong>${total}</strong></td>
+      </tr>`
+    ).join('')}
+  </table>
+  ` : ''}
+  
+  <h2>👥 Resumen por Usuario</h2>
+  ${Object.entries(report.byUser).map(([user, data]) => {
+    const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
+    return `
+    <div class="user-section">
+      <h3>👤 ${userFullNames[user] || user}</h3>
+      <table style="margin: 10px 0;">
+        <tr>
+          <th>Total</th>
+          <th>Horas Trabajadas</th>
+          <th>Promedio/Hora</th>
+        </tr>
+        <tr>
+          <td><strong>${data.total}</strong></td>
+          <td><strong>${data.horasTrabajadas}h</strong></td>
+          <td><strong>${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</strong></td>
+        </tr>
+      </table>
+      
+      <p><strong>📊 Distribución por Turno:</strong></p>
+      <table style="margin: 10px 0;">
+        <tr>
+          <th>Diurno</th>
+          <th>Mañana</th>
+          <th>Tarde</th>
+          <th>Noche</th>
+        </tr>
+        <tr>
+          <td>${data.turnos.Diurno}</td>
+          <td>${data.turnos.Mañana}</td>
+          <td>${data.turnos.Tarde}</td>
+          <td>${data.turnos.Noche}</td>
+        </tr>
+      </table>
+      
+      ${userSopTotal > 0 ? `
+      <div class="sop-section">
+        <strong>🔬 Rx SOP por categoría:</strong><br><br>
+        <table>
+          <tr><th>Categoría</th><th>Cantidad</th></tr>
+          ${sopCategories.filter(cat => data.sopCategories[cat] > 0).map(cat => 
+            `<tr><td>${cat}</td><td><strong>${data.sopCategories[cat]}</strong></td></tr>`
+          ).join('')}
+        </table>
+      </div>
+      ` : ''}
+      
+      ${Object.keys(data.rxEspeciales || {}).length > 0 && Object.values(data.rxEspeciales).reduce((sum, val) => sum + val, 0) > 0 ? `
+      <div class="sop-section" style="background: #DBEAFE; border-left: 4px solid #3B82F6;">
+        <strong>🔬 Exámenes Especiales:</strong><br><br>
+        <table>
+          <tr><th>Examen</th><th>Cantidad</th></tr>
+          ${Object.entries(data.rxEspeciales).filter(([, cant]) => cant > 0).map(([examen, cantidad]) => 
+            `<tr><td>${examen}</td><td><strong>${cantidad}</strong></td></tr>`
+          ).join('')}
+        </table>
+      </div>
+      ` : ''}
+    </div>
+  `}).join('')}
+`;
+  
+  // Agregar calendarios individuales de cada usuario
+  Object.keys(report.byUser).forEach(user => {
+    const calHtml = generateCalendarHTML(user, userFullNames[user] || user, targetMonth);
+    if (calHtml) {
+      content += calHtml;
+    }
+  });
+  
+  content += `
+  <div class="footer">
+    <p><strong>Sistema de Producción Diaria - EsSalud</strong></p>
+    <p>Reporte generado el ${new Date().toLocaleString('es-PE', { 
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}</p>
+  </div>
+</body>
+</html>`;
+  
+  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reporte-general-todos-${targetMonth}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  alert('✅ Reporte general descargado!\n\nIncluye:\n✔️ Estadísticas generales\n✔️ Resumen de TODOS los usuarios\n✔️ Calendarios individuales\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
+};
          
     const deleteUser = (dni) => {
       console.log('deleteUser llamado para:', dni);
@@ -1798,6 +2157,27 @@ const handleChangePassword = () => {
             {showAdminPanel && isAdmin && (
               <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-cyan-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Gestión de Producción de Todos los Usuarios</h2>
+
+              <div className="flex gap-3 mb-4">
+                  <button
+                    onClick={() => {
+                      if (!filterUserDNI || filterUserDNI === '') {
+                        alert('Por favor selecciona un usuario específico para exportar reporte individual');
+                        return;
+                      }
+                      exportAdminIndividualPDF(filterUserDNI, adminProductionMonth);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+                  >
+                    📄 Exportar Reporte Individual
+                  </button>
+                  <button
+                    onClick={() => exportAdminGeneralPDF(adminProductionMonth)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
+                  >
+                    📊 Exportar Reporte General (Todos)
+                  </button>
+                </div>
                 
                 <div className="bg-white rounded-lg p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
