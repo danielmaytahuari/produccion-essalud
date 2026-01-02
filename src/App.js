@@ -389,7 +389,7 @@ import React, { useState, useEffect } from 'react';
   setEditingUser(dni);
 };
 
-const handleSaveUserEdit = async () => {
+const  = async () => {
   if (!editingUser) return;
   
   try {
@@ -1407,23 +1407,6 @@ const exportAdminGeneralPDF = (targetMonth) => {
   setShowConfirmDialog(true);
 };
 
-const handleSaveUserEdit = () => {
-  if (!editingUser) return;
-  
-  const updatedFullNames = { ...userFullNames, [editingUser]: editUserData.fullname };
-  setUserFullNames(updatedFullNames);
-  localStorage.setItem('production-fullnames', JSON.stringify(updatedFullNames));
-  
-  const updatedPasswords = { ...userPasswords, [editingUser]: editUserData.password };
-  setUserPasswords(updatedPasswords);
-  localStorage.setItem('production-passwords', JSON.stringify(updatedPasswords));
-  
-  setEditingUser(null);
-  setSuccessMessageText('✅ Usuario actualizado correctamente');
-  setShowSuccessMessage(true);
-  setTimeout(() => setShowSuccessMessage(false), 3000);
-};
-
 const handleChangePassword = () => {
   // Validar que todos los campos estén llenos
   if (!changePasswordData.currentPassword || !changePasswordData.newPassword || !changePasswordData.confirmPassword) {
@@ -2268,7 +2251,7 @@ const handleChangePassword = () => {
       
       <div className="flex gap-2">
         <button
-          onClick={handleSaveUserEdit}
+          onClick={}
           className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           Guardar
