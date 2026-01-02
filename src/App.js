@@ -1,4 +1,4 @@
-// IMPORTS DE FIREBASE - TEMPORALMENTE COMENTADOS HASTA MIGRACIÓN COMPLETA
+// IMPORTS DE FIREBASE - AHORA ACTIVOS  
 // import { auth } from './firebase';
 // import { onAuthStateChanged } from 'firebase/auth';
 // import {
@@ -101,32 +101,90 @@ import React, { useState, useEffect } from 'react';
     };
     
     useEffect(() => {
-      loadData();
-    }, []);
-    
+  loadData();
+  
+  // Listener de autenticación de Firebase
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('Usuario autenticado:', user.uid);
+    }
+  });
+  
+  return () => unsubscribe();
+}, []);
+
+    // YA NO NECESARIO - Firebase guarda automáticamente
     useEffect(() => {
       if (isLoggedIn) {
-        saveData();
+       // YA NO NECESARIA - Firebase guarda automáticamente
+// const saveData = () => {
+//   try {
+//     localStorage.setItem('production-users', JSON.stringify(users));
+//     localStorage.setItem('production-passwords', JSON.stringify(userPasswords));
+//     localStorage.setItem('production-fullnames', JSON.stringify(userFullNames));
+//     localStorage.setItem('production-records', JSON.stringify(productions));
+//     localStorage.setItem('production-salas', JSON.stringify(editableItems));
+//   } catch (e) {
+//     console.error('Error guardando:', e);
+//   }
+// };
       }
     }, [users, userPasswords, userFullNames, productions, editableItems, isLoggedIn]);
     
-    const loadData = () => {
-      try {
-        const usersData = localStorage.getItem('production-users');
-        const passData = localStorage.getItem('production-passwords');
-        const namesData = localStorage.getItem('production-fullnames');
-        const prodsData = localStorage.getItem('production-records');
-        const salasData = localStorage.getItem('production-salas');
-        
-        if (usersData) setUsers(JSON.parse(usersData));
-        if (passData) setUserPasswords(JSON.parse(passData));
-        if (namesData) setUserFullNames(JSON.parse(namesData));
-        if (prodsData) setProductions(JSON.parse(prodsData));
-        if (salasData) setEditableItems(JSON.parse(salasData));
-      } catch (e) {
-        console.log('Primera carga o error:', e);
-      }
-    };
+    const loadData = async () => {
+  try {
+    // Cargar usuarios
+    const usersData = await getAllUsers();
+    if (usersData && usersData.length > 0) {
+      const userDNIs = usersData.map(u => u.dni);
+      const passwords = {};
+      const fullnames = {};
+      
+      usersData.forEach(u => {
+        passwords[u.dni] = u.password;
+        fullnames[u.dni] = u.fullname;
+      });
+      
+      setUsers(userDNIs);
+      setUserPasswords(passwords);
+      setUserFullNames(fullnames);
+    }
+    
+    // Cargar producción
+    const prodsData = await getAllProduction();
+    if (prodsData && prodsData.length > 0) {
+      setProductions(prodsData);
+    }
+    
+    // Cargar salas
+    const salasData = await getSalas();
+    if (salasData && salasData.length > 0) {
+      setEditableItems(salasData);
+    }
+    
+    console.log('✅ Datos cargados desde Firebase');
+  } catch (e) {
+    console.error('❌ Error cargando desde Firebase:', e);
+    // Fallback a localStorage si Firebase falla
+    try {
+      const usersData = localStorage.getItem('production-users');
+      const passData = localStorage.getItem('production-passwords');
+      const namesData = localStorage.getItem('production-fullnames');
+      const prodsData = localStorage.getItem('production-records');
+      const salasData = localStorage.getItem('production-salas');
+      
+      if (usersData) setUsers(JSON.parse(usersData));
+      if (passData) setUserPasswords(JSON.parse(passData));
+      if (namesData) setUserFullNames(JSON.parse(namesData));
+      if (prodsData) setProductions(JSON.parse(prodsData));
+      if (salasData) setEditableItems(JSON.parse(salasData));
+      
+      console.log('⚠️ Datos cargados desde localStorage (fallback)');
+    } catch (fallbackError) {
+      console.error('❌ Error en fallback localStorage:', fallbackError);
+    }
+  }
+};
     
     const saveData = () => {
       try {
@@ -177,74 +235,111 @@ import React, { useState, useEffect } from 'react';
       setLoginPassword('');
     };
     
-    const handleRegister = () => {
-      if (!newDNI.trim() || !newFullName.trim() || !newPassword || !newPasswordConfirm) {
-        showMessage('❌ Por favor completa todos los campos');
-        return;
-      }
-      if (users.includes(newDNI.trim())) {
-        showMessage('❌ Este DNI ya está registrado');
-        return;
-      }
-      if (newPassword.length < 4) {
-        showMessage('❌ La contraseña debe tener al menos 4 caracteres');
-        return;
-      }
-      if (newPassword !== newPasswordConfirm) {
-        showMessage('❌ Las contraseñas no coinciden');
-        return;
-      }
-      
-      const userName = newFullName.trim();
-      const userDNI = newDNI.trim();
-      
-      setUsers([...users, userDNI]);
-      setUserPasswords({...userPasswords, [userDNI]: newPassword});
-      setUserFullNames({...userFullNames, [userDNI]: userName});
-      
-      // Limpiar campos
-      setNewDNI('');
-      setNewFullName('');
-      setNewPassword('');
-      setNewPasswordConfirm('');
-      setShowRegister(false);
-      
-      // Mostrar mensaje de éxito visual
-      showMessage(`¡Usuario registrado exitosamente!\n\n👤 ${userName}\n🆔 DNI: ${userDNI}\n\nAhora puedes iniciar sesión`, 5000);
-    };
+    const handleRegister = async () => {
+  if (!newDNI.trim() || !newFullName.trim() || !newPassword || !newPasswordConfirm) {
+    showMessage('❌ Por favor completa todos los campos');
+    return;
+  }
+  if (users.includes(newDNI.trim())) {
+    showMessage('❌ Este DNI ya está registrado');
+    return;
+  }
+  if (newPassword.length < 4) {
+    showMessage('❌ La contraseña debe tener al menos 4 caracteres');
+    return;
+  }
+  if (newPassword !== newPasswordConfirm) {
+    showMessage('❌ Las contraseñas no coinciden');
+    return;
+  }
+  
+  const userName = newFullName.trim();
+  const userDNI = newDNI.trim();
+  
+  try {
+    // Guardar en Firebase
+    await saveUser({
+      dni: userDNI,
+      fullname: userName,
+      password: newPassword
+    });
     
-    const addProduction = (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null, procedimientos = null) => {
-        if (sala === 'Rx especiales' && rxEspeciales) {
-        const newProds = rxEspeciales
-          .filter(esp => esp.examen.trim() && esp.cantidad)
-          .map(esp => ({
-            id: Date.now() + Math.random(),
-            user: currentUser,
-            date,
-            sala,
-            turno,
-            cantidad: parseFloat(esp.cantidad),
-            rxEspecialExamen: esp.examen,
-            timestamp: new Date().toISOString(),
-        procedimientos: procedimientos,
-          }));
-        
-        setProductions([...productions, ...newProds]);
-        alert(`✅ ${newProds.length} examen(es) registrado(s)!`);
-        return true;
+    // Actualizar estado local
+    setUsers([...users, userDNI]);
+    setUserPasswords({...userPasswords, [userDNI]: newPassword});
+    setUserFullNames({...userFullNames, [userDNI]: userName});
+    
+    // Limpiar campos
+    setNewDNI('');
+    setNewFullName('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    setShowRegister(false);
+    
+    showMessage(`¡Usuario registrado exitosamente!\n\n👤 ${userName}\n🆔 DNI: ${userDNI}\n\nAhora puedes iniciar sesión`, 5000);
+  } catch (error) {
+    console.error('Error registrando usuario:', error);
+    showMessage('❌ Error al registrar usuario: ' + error.message);
+  }
+};
+    
+    const addProduction = async (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null, procedimientos = null) => {
+  if (sala === 'Rx especiales' && rxEspeciales) {
+    try {
+      const newProds = rxEspeciales
+        .filter(esp => esp.examen.trim() && esp.cantidad)
+        .map(esp => ({
+          id: Date.now() + Math.random(),
+          user: currentUser,
+          date,
+          sala,
+          turno,
+          cantidad: parseFloat(esp.cantidad),
+          rxEspecialExamen: esp.examen,
+          timestamp: new Date().toISOString(),
+          procedimientos: procedimientos,
+        }));
+      
+      // Guardar en Firebase
+      for (const prod of newProds) {
+        await addProductionDB(prod);
       }
       
-      const newProd = {
-        id: Date.now(),
-        user: currentUser,
-        date,
-        sala,
-        turno,
-        cantidad: parseFloat(cantidad),
-        sopCategory: sopCategory || null,
-        procedimientos: procedimientos || null,
-        timestamp: new Date().toISOString()
-      };
+      setProductions([...productions, ...newProds]);
+      alert(`✅ ${newProds.length} examen(es) registrado(s)!`);
+      return true;
+    } catch (error) {
+      console.error('Error guardando producción:', error);
+      alert('❌ Error al registrar: ' + error.message);
+      return false;
+    }
+  }
+  
+  const newProd = {
+    id: Date.now(),
+    user: currentUser,
+    date,
+    sala,
+    turno,
+    cantidad: parseFloat(cantidad),
+    sopCategory: sopCategory || null,
+    procedimientos: procedimientos || null,
+    timestamp: new Date().toISOString()
+  };
+  
+  try {
+    // Guardar en Firebase
+    await addProductionDB(newProd);
+    
+    setProductions([...productions, newProd]);
+    alert('✅ Producción registrada!');
+    return true;
+  } catch (error) {
+    console.error('Error guardando producción:', error);
+    alert('❌ Error al registrar: ' + error.message);
+    return false;
+  }
+};
       
       setProductions([...productions, newProd]);
       alert('✅ Producción registrada!');
@@ -261,35 +356,53 @@ import React, { useState, useEffect } from 'react';
       setShowEditDialog(true);
     };
     
-    const saveEditedProduction = () => {
-      if (!editingProduction.sala || !editingProduction.turno || !editingProduction.cantidad) {
-        showMessage('❌ Por favor completa todos los campos');
-        return;
-      }
-      
-      const updatedProductions = productions.map(p => 
-        p.id === editingProduction.id ? {...editingProduction, cantidad: Number(editingProduction.cantidad)} : p
-      );
-      
-      setProductions(updatedProductions);
-      setShowEditDialog(false);
-      setEditingProduction(null);
-      showMessage('✅ Producción actualizada!');
-    };
+    const saveEditedProduction = async () => {
+  if (!editingProduction.sala || !editingProduction.turno || !editingProduction.cantidad) {
+    showMessage('❌ Por favor completa todos los campos');
+    return;
+  }
+  
+  try {
+    const updatedProd = {...editingProduction, cantidad: Number(editingProduction.cantidad)};
+    
+    // Actualizar en Firebase
+    await updateProductionDB(updatedProd.id, updatedProd);
+    
+    const updatedProductions = productions.map(p => 
+      p.id === updatedProd.id ? updatedProd : p
+    );
+    
+    setProductions(updatedProductions);
+    setShowEditDialog(false);
+    setEditingProduction(null);
+    showMessage('✅ Producción actualizada!');
+  } catch (error) {
+    console.error('Error actualizando producción:', error);
+    showMessage('❌ Error al actualizar: ' + error.message);
+  }
+};
     
     const cancelEdit = () => {
       setShowEditDialog(false);
       setEditingProduction(null);
     };
     
-    const confirmDelete = () => {
-      if (productionToDelete) {
-        setProductions(productions.filter(p => p.id !== productionToDelete));
-        showMessage('✅ Registro eliminado!');
-      }
-      setShowDeleteDialog(false);
-      setProductionToDelete(null);
-    };
+    const confirmDelete = async () => {
+  if (productionToDelete) {
+    try {
+      // Eliminar de Firebase
+      await deleteProductionDB(productionToDelete);
+      
+      setProductions(productions.filter(p => p.id !== productionToDelete));
+      showMessage('✅ Registro eliminado!');
+    } catch (error) {
+      console.error('Error eliminando producción:', error);
+      showMessage('❌ Error al eliminar: ' + error.message);
+    }
+  }
+  setShowDeleteDialog(false);
+  setProductionToDelete(null);
+};
     
     const handlePasswordRecovery = () => {
       if (!recoveryDNI.trim()) {
@@ -1258,46 +1371,48 @@ const exportAdminGeneralPDF = (targetMonth) => {
 };
          
     const deleteUser = (dni) => {
-      console.log('deleteUser llamado para:', dni);
-      
-      setConfirmDialogData({
-        title: '🗑️ Eliminar Usuario',
-        message: `¿Eliminar usuario ${userFullNames[dni] || dni}?\n\nEsto también eliminará todos sus registros de producción.\n\n⚠️ Esta acción no se puede deshacer.`,
-        onConfirm: () => {
-          try {
-            const updatedUsers = users.filter(u => u !== dni);
-            const updatedPasswords = {...userPasswords};
-            const updatedNames = {...userFullNames};
-            delete updatedPasswords[dni];
-            delete updatedNames[dni];
-            
-            const updatedProductions = productions.filter(p => p.user !== dni);
-            
-            setUsers(updatedUsers);
-            setUserPasswords(updatedPasswords);
-            setUserFullNames(updatedNames);
-            setProductions(updatedProductions);
-            
-            console.log('Usuario eliminado exitosamente');
-            setSuccessMessageText('✅ Usuario eliminado exitosamente\n\nSe eliminaron también todos sus registros de producción.');
-            setShowSuccessMessage(true);
-            setTimeout(() => setShowSuccessMessage(false), 4000);
-          } catch (error) {
-            console.error('Error al eliminar usuario:', error);
-            setSuccessMessageText('❌ Error al eliminar usuario: ' + error.message);
-            setShowSuccessMessage(true);
-            setTimeout(() => setShowSuccessMessage(false), 4000);
-          }
+  console.log('deleteUser llamado para:', dni);
+  
+  setConfirmDialogData({
+    title: '🗑️ Eliminar Usuario',
+    message: `¿Eliminar usuario ${userFullNames[dni] || dni}?\n\nEsto también eliminará todos sus registros de producción.\n\n⚠️ Esta acción no se puede deshacer.`,
+    onConfirm: async () => {
+      try {
+        // Eliminar de Firebase
+        await deleteUserDB(dni);
+        
+        const updatedUsers = users.filter(u => u !== dni);
+        const updatedPasswords = {...userPasswords};
+        const updatedNames = {...userFullNames};
+        delete updatedPasswords[dni];
+        delete updatedNames[dni];
+        
+        const updatedProductions = productions.filter(p => p.user !== dni);
+        
+        // Eliminar producciones del usuario de Firebase
+        const userProductions = productions.filter(p => p.user === dni);
+        for (const prod of userProductions) {
+          await deleteProductionDB(prod.id);
         }
-      });
-      setShowConfirmDialog(true);
-    };
-
-    const handleEditUser = (dni) => {
-  const fullname = userFullNames[dni] || '';
-  const password = userPasswords[dni] || '';
-  setEditUserData({ fullname, password });
-  setEditingUser(dni);
+        
+        setUsers(updatedUsers);
+        setUserPasswords(updatedPasswords);
+        setUserFullNames(updatedNames);
+        setProductions(updatedProductions);
+        
+        console.log('Usuario eliminado exitosamente');
+        setSuccessMessageText('✅ Usuario eliminado exitosamente\n\nSe eliminaron también todos sus registros de producción.');
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 4000);
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        setSuccessMessageText('❌ Error al eliminar usuario: ' + error.message);
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 4000);
+      }
+    }
+  });
+  setShowConfirmDialog(true);
 };
 
 const handleSaveUserEdit = () => {
@@ -1411,35 +1526,57 @@ const handleChangePassword = () => {
       setShowPromptDialog(true);
     };
     
-    const addSala = () => {
-      if (!newSalaName.trim()) {
-        alert('Por favor ingresa el nombre de la sala');
-        return;
-      }
-      
-      if (editableItems.includes(newSalaName.trim())) {
-        alert('Esta sala ya existe');
-        return;
-      }
-      
-      setEditableItems([...editableItems, newSalaName.trim()]);
-      setNewSalaName('');
-      alert('✅ Sala agregada');
-    };
+    const addSala = async () => {
+  if (!newSalaName.trim()) {
+    alert('Por favor ingresa el nombre de la sala');
+    return;
+  }
+  
+  if (editableItems.includes(newSalaName.trim())) {
+    alert('Esta sala ya existe');
+    return;
+  }
+  
+  try {
+    const newSalas = [...editableItems, newSalaName.trim()];
+    
+    // Guardar en Firebase
+    await saveSalas(newSalas);
+    
+    setEditableItems(newSalas);
+    setNewSalaName('');
+    alert('✅ Sala agregada');
+  } catch (error) {
+    console.error('Error agregando sala:', error);
+    alert('❌ Error al agregar sala: ' + error.message);
+  }
+};
     
     const deleteSala = (sala) => {
-      setConfirmDialogData({
-        title: '🗑️ Eliminar Sala',
-        message: `¿Eliminar sala "${sala}"?\n\nLos registros existentes con esta sala se mantendrán, pero no podrás crear nuevos.`,
-        onConfirm: () => {
-          setEditableItems(editableItems.filter(s => s !== sala));
-          setSuccessMessageText('✅ Sala eliminada exitosamente');
-          setShowSuccessMessage(true);
-          setTimeout(() => setShowSuccessMessage(false), 3000);
-        }
-      });
-      setShowConfirmDialog(true);
-    };
+  setConfirmDialogData({
+    title: '🗑️ Eliminar Sala',
+    message: `¿Eliminar sala "${sala}"?\n\nLos registros existentes con esta sala se mantendrán, pero no podrás crear nuevos.`,
+    onConfirm: async () => {
+      try {
+        const newSalas = editableItems.filter(s => s !== sala);
+        
+        // Guardar en Firebase
+        await saveSalas(newSalas);
+        
+        setEditableItems(newSalas);
+        setSuccessMessageText('✅ Sala eliminada exitosamente');
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
+      } catch (error) {
+        console.error('Error eliminando sala:', error);
+        setSuccessMessageText('❌ Error al eliminar sala: ' + error.message);
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
+      }
+    }
+  });
+  setShowConfirmDialog(true);
+};
     
     const getMyProductions = () => {
       return productions
