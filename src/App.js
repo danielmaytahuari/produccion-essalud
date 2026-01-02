@@ -1,21 +1,17 @@
-// IMPORTS DE FIREBASE - AHORA ACTIVOS  
-// import { auth } from './firebase';
-// import { onAuthStateChanged } from 'firebase/auth';
-// import {
-//   getAllUsers,
-//   getUserByDNI,
-//   saveUser,
-//   deleteUser,
-//   getAllProduction,
-//   getProductionByUser,
-//   addProduction,
-//   updateProduction,
-//   deleteProduction,
-//   getSalas,
-//   saveSalas,
-//   getAdminConfig,
-//   saveAdminConfig
-// } from './services/dbService';
+// IMPORTS DE FIREBASE - ACTIVOS
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  getAllUsers,
+  saveUser,
+  deleteUser as deleteUserDB,
+  getAllProduction,
+  addProduction as addProductionDB,
+  updateProduction as updateProductionDB,
+  deleteProduction as deleteProductionDB,
+  getSalas,
+  saveSalas
+} from './services/dbService';
 
 
 import React, { useState, useEffect } from 'react';
@@ -341,11 +337,6 @@ import React, { useState, useEffect } from 'react';
   }
 };
       
-      setProductions([...productions, newProd]);
-      alert('✅ Producción registrada!');
-      return true;
-    };
-    
     const deleteProduction = (id) => {
       setProductionToDelete(id);
       setShowDeleteDialog(true);
