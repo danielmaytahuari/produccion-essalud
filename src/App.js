@@ -381,6 +381,37 @@ import React, { useState, useEffect } from 'react';
       setShowRecovery(false);
       setRecoveryDNI('');
     };
+
+    const handleEditUser = (dni) => {
+  const fullname = userFullNames[dni] || '';
+  const password = userPasswords[dni] || '';
+  setEditUserData({ fullname, password });
+  setEditingUser(dni);
+};
+
+const handleSaveUserEdit = async () => {
+  if (!editingUser) return;
+  
+  try {
+    await saveUser({
+      dni: editingUser,
+      fullname: editUserData.fullname,
+      password: editUserData.password
+    });
+    
+    const updatedFullNames = { ...userFullNames, [editingUser]: editUserData.fullname };
+    setUserFullNames(updatedFullNames);
+    
+    const updatedPasswords = { ...userPasswords, [editingUser]: editUserData.password };
+    setUserPasswords(updatedPasswords);
+    
+    setEditingUser(null);
+    showMessage('✅ Usuario actualizado correctamente');
+  } catch (error) {
+    console.error('Error actualizando usuario:', error);
+    showMessage('❌ Error al actualizar: ' + error.message);
+  }
+};
     
     const exportToTXT = () => {
       const report = generateReport();
