@@ -108,25 +108,7 @@ import React, { useState, useEffect } from 'react';
   
   return () => unsubscribe();
 }, []);
-
-    // YA NO NECESARIO - Firebase guarda automáticamente
-    useEffect(() => {
-      if (isLoggedIn) {
-       // YA NO NECESARIA - Firebase guarda automáticamente
-// const saveData = () => {
-//   try {
-//     localStorage.setItem('production-users', JSON.stringify(users));
-//     localStorage.setItem('production-passwords', JSON.stringify(userPasswords));
-//     localStorage.setItem('production-fullnames', JSON.stringify(userFullNames));
-//     localStorage.setItem('production-records', JSON.stringify(productions));
-//     localStorage.setItem('production-salas', JSON.stringify(editableItems));
-//   } catch (e) {
-//     console.error('Error guardando:', e);
-//   }
-// };
-      }
-    }, [users, userPasswords, userFullNames, productions, editableItems, isLoggedIn]);
-    
+  
     const loadData = async () => {
   try {
     // Cargar usuarios
@@ -181,19 +163,7 @@ import React, { useState, useEffect } from 'react';
     }
   }
 };
-    
-    const saveData = () => {
-      try {
-        localStorage.setItem('production-users', JSON.stringify(users));
-        localStorage.setItem('production-passwords', JSON.stringify(userPasswords));
-        localStorage.setItem('production-fullnames', JSON.stringify(userFullNames));
-        localStorage.setItem('production-records', JSON.stringify(productions));
-        localStorage.setItem('production-salas', JSON.stringify(editableItems));
-      } catch (e) {
-        console.error('Error guardando:', e);
-      }
-    };
-    
+        
     const handleLogin = () => {
       if (!loginDNI || !loginPassword) {
         showMessage('❌ Por favor completa todos los campos');
