@@ -52,6 +52,7 @@ import React, { useState, useEffect } from 'react';
     const [userPasswords, setUserPasswords] = useState({});
     const [userFullNames, setUserFullNames] = useState({});
     const [showRegister, setShowRegister] = useState(false);
+    const [productionNotes, setProductionNotes] = useState('');
     const [newDNI, setNewDNI] = useState('');
     const [newFullName, setNewFullName] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -249,22 +250,23 @@ import React, { useState, useEffect } from 'react';
   }
 };
     
-    const addProduction = async (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null, procedimientos = null) => {
+    const addProduction = async (date, sala, turno, cantidad, sopCategory = null, rxEspeciales = null, procedimientos = null, notas = null) => {
   if (sala === 'Rx especiales' && rxEspeciales) {
     try {
       const newProds = rxEspeciales
-        .filter(esp => esp.examen.trim() && esp.cantidad)
-        .map(esp => ({
-          id: Date.now() + Math.random(),
-          user: currentUser,
-          date,
-          sala,
-          turno,
-          cantidad: parseFloat(esp.cantidad),
-          rxEspecialExamen: esp.examen,
-          timestamp: new Date().toISOString(),
-          procedimientos: procedimientos,
-        }));
+  .filter(esp => esp.examen.trim() && esp.cantidad)
+  .map(esp => ({
+    id: Date.now() + Math.random(),
+    user: currentUser,
+    date,
+    sala,
+    turno,
+    cantidad: parseFloat(esp.cantidad),
+    rxEspecialExamen: esp.examen,
+    notas: notas || null,  // ← NUEVO CAMPO
+    timestamp: new Date().toISOString(),
+    procedimientos: procedimientos,
+  }));
       
       // Guardar en Firebase
       for (const prod of newProds) {
@@ -282,16 +284,17 @@ import React, { useState, useEffect } from 'react';
   }
   
   const newProd = {
-    id: Date.now(),
-    user: currentUser,
-    date,
-    sala,
-    turno,
-    cantidad: parseFloat(cantidad),
-    sopCategory: sopCategory || null,
-    procedimientos: procedimientos || null,
-    timestamp: new Date().toISOString()
-  };
+  id: Date.now(),
+  user: currentUser,
+  date,
+  sala,
+  turno,
+  cantidad: parseFloat(cantidad),
+  sopCategory: sopCategory || null,
+  procedimientos: procedimientos || null,
+  notas: notas || null,  // ← NUEVO CAMPO
+  timestamp: new Date().toISOString()
+};
   
   try {
     // Guardar en Firebase
@@ -2449,6 +2452,19 @@ const handleChangePassword = () => {
               />
             </div>
             )}
+              {/* Campo de Notas */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    📝 Notas / Observaciones (opcional)
+  </label>
+  <textarea
+    value={productionNotes}
+    onChange={(e) => setProductionNotes(e.target.value)}
+    placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    rows="2"
+  />
+</div>
 
             {!isAdmin && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
@@ -3284,12 +3300,14 @@ const handleChangePassword = () => {
           alert('Por favor ingresa al menos un examen especial');
           return;
         }
-        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos);
-        if (success) {
+        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos, productionNotes);
+       if (success) {
           setSala('');
           setTurno('');
           setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
           setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
+          setProductionNotes('');  // ← AGREGAR ESTA LÍNEA
+}
         }
         return;
       }
@@ -3299,14 +3317,16 @@ const handleChangePassword = () => {
         return;
       }
       
-      const success = onSubmit(date, sala, turno, cantidad, sopCategory);
-      if (success) {
-        setSala('');
-        setTurno('');
-        setCantidad('');
-        setSopCategory('');
-      }
-    };
+     const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, procedimientos, productionNotes);
+     if (success) {
+    setSala('');
+    setTurno('');
+    setCantidad('');
+    setSopCategory('');
+    setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
+    setProductionNotes('');  
+  }
+};
     
     return (
       <div className="space-y-4">
