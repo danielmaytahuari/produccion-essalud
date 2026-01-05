@@ -3307,7 +3307,6 @@ const handleChangePassword = () => {
           setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
           setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
           setProductionNotes('');  // ← AGREGAR ESTA LÍNEA
-}
         }
         return;
       }
