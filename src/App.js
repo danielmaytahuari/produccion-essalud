@@ -3267,21 +3267,22 @@ const handleChangePassword = () => {
   }
   
   function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [sala, setSala] = useState('');
-    const [turno, setTurno] = useState('');
-    const [cantidad, setCantidad] = useState('');
-    const [sopCategory, setSopCategory] = useState('');
-    const [rxEspeciales, setRxEspeciales] = useState([
-      { examen: '', cantidad: '' },
-      { examen: '', cantidad: '' },
-      { examen: '', cantidad: '' }
-    ]);
-    const [procedimientos, setProcedimientos] = useState([
-  { nombre: '', cantidad: '' },
-  { nombre: '', cantidad: '' },
-  { nombre: '', cantidad: '' }
-]);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sala, setSala] = useState('');
+  const [turno, setTurno] = useState('');
+  const [cantidad, setCantidad] = useState('');
+  const [sopCategory, setSopCategory] = useState('');
+  const [productionNotes, setProductionNotes] = useState('');  // ← AGREGAR ESTA LÍNEA
+  const [rxEspeciales, setRxEspeciales] = useState([
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' }
+  ]);
+  const [procedimientos, setProcedimientos] = useState([
+    { nombre: '', cantidad: '' },
+    { nombre: '', cantidad: '' },
+    { nombre: '', cantidad: '' }
+  ]);
     
     const handleSubmit = () => {
       if (!sala || !turno) {
