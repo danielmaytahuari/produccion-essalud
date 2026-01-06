@@ -658,7 +658,6 @@ if (productionsWithNotes.length > 0) {
 }
 
 return html;
-  return html;
 };
 
 const exportToPDF = () => {
