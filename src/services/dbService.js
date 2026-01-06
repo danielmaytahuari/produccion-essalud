@@ -7,8 +7,10 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
-  query,   
-  where  
+  query,
+  where
+} from 'firebase/firestore';  // ← Debe cerrar aquí con };
+
 import { db } from '../firebase';
 
 // ==================== USUARIOS ====================
