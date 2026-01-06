@@ -6,7 +6,7 @@ import {
   saveUser,
   deleteUser as deleteUserDB,
   getAllProduction,
-  getProductionByUser,  // ← AGREGAR ESTA LÍNEA
+  getProductionByUser,
   addProduction as addProductionDB,
   updateProduction as updateProductionDB,
   deleteProduction as deleteProductionDB,
