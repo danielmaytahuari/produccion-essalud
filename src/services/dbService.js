@@ -108,22 +108,6 @@ export const getProductionByUser = async (userDNI) => {
   }
 };
 
-// Obtener registros de producción por usuario
-export const getProductionByUser = async (dni) => {
-  try {
-    const q = query(collection(db, 'production'), where('dni', '==', dni));
-    const productionSnapshot = await getDocs(q);
-    const records = [];
-    productionSnapshot.forEach(doc => {
-      records.push({ id: doc.id, ...doc.data() });
-    });
-    return records;
-  } catch (error) {
-    console.error('Error al obtener producción del usuario:', error);
-    throw error;
-  }
-};
-
 // Obtener registros de producción por mes
 export const getProductionByMonth = async (year, month) => {
   try {
