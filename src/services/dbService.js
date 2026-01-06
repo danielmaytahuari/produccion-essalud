@@ -1,19 +1,15 @@
 // dbService.js - Servicio de Base de Datos (Firestore)
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  addDoc,
-  updateDoc,
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
   deleteDoc,
-  query,
-  where,
-  orderBy,
-  onSnapshot
+  query,     // ← AGREGAR
+  where      // ← AGREGAR
 } from 'firebase/firestore';
-import { db } from '../firebase';
 
 // ==================== USUARIOS ====================
 
@@ -92,6 +88,22 @@ export const getAllProduction = async () => {
     return records;
   } catch (error) {
     console.error('Error al obtener producción:', error);
+    throw error;
+  }
+};
+
+export const getProductionByUser = async (userDNI) => {
+  try {
+    const dniString = String(userDNI);
+    const q = query(collection(db, 'production'), where('user', '==', dniString));
+    const querySnapshot = await getDocs(q);
+    const productions = [];
+    querySnapshot.forEach((doc) => {
+      productions.push({ id: doc.id, ...doc.data() });
+    });
+    return productions;
+  } catch (error) {
+    console.error('Error en getProductionByUser:', error);
     throw error;
   }
 };
