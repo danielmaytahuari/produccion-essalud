@@ -6,6 +6,7 @@ import {
   saveUser,
   deleteUser as deleteUserDB,
   getAllProduction,
+  getProductionByUser,  // ← AGREGAR ESTA LÍNEA
   addProduction as addProductionDB,
   updateProduction as updateProductionDB,
   deleteProduction as deleteProductionDB,
@@ -110,9 +111,8 @@ import React, { useState, useEffect } from 'react';
   return () => unsubscribe();
 }, []);
   
-    const loadData = async () => {
+   const loadData = async () => {
   try {
-    // Cargar usuarios
     const usersData = await getAllUsers();
     if (usersData && usersData.length > 0) {
       const userDNIs = usersData.map(u => u.dni);
@@ -129,13 +129,8 @@ import React, { useState, useEffect } from 'react';
       setUserFullNames(fullnames);
     }
     
-    // Cargar producción
-    const prodsData = await getAllProduction();
-    if (prodsData && prodsData.length > 0) {
-      setProductions(prodsData);
-    }
+    // NO cargar producciones aquí - se cargan después del login
     
-    // Cargar salas
     const salasData = await getSalas();
     if (salasData && salasData.length > 0) {
       setEditableItems(salasData);
@@ -144,7 +139,6 @@ import React, { useState, useEffect } from 'react';
     console.log('✅ Datos cargados desde Firebase');
   } catch (e) {
     console.error('❌ Error cargando desde Firebase:', e);
-    // Fallback a localStorage si Firebase falla
     try {
       const usersData = localStorage.getItem('production-users');
       const passData = localStorage.getItem('production-passwords');
@@ -165,34 +159,52 @@ import React, { useState, useEffect } from 'react';
   }
 };
         
-    const handleLogin = () => {
-      if (!loginDNI || !loginPassword) {
-        showMessage('❌ Por favor completa todos los campos');
-        return;
+    const handleLogin = async () => {
+  if (!loginDNI || !loginPassword) {
+    showMessage('❌ Por favor completa todos los campos');
+    return;
+  }
+  
+  if (loginPassword === ADMIN_KEY) {
+    setIsAdmin(true);
+    setCurrentUser(loginDNI);
+    setIsLoggedIn(true);
+    
+    // Cargar TODAS las producciones para admin
+    try {
+      const prodsData = await getAllProduction();
+      if (prodsData && prodsData.length > 0) {
+        setProductions(prodsData);
       }
-      
-      if (loginPassword === ADMIN_KEY) {
-        setIsAdmin(true);
-        setCurrentUser(loginDNI);
-        setIsLoggedIn(true);
-        return;
+    } catch (error) {
+      console.error('Error cargando producciones admin:', error);
+    }
+    return;
+  }
+  
+  if (!users.includes(loginDNI)) {
+    showMessage('❌ Usuario no encontrado\n\nEl DNI ingresado no está registrado en el sistema.', 4000);
+    return;
+  }
+  
+  if (userPasswords[loginDNI] === loginPassword) {
+    setCurrentUser(loginDNI);
+    setIsLoggedIn(true);
+    setIsAdmin(false);
+    
+    // Cargar SOLO las producciones de este usuario
+    try {
+      const prodsData = await getProductionByUser(loginDNI);
+      if (prodsData && prodsData.length > 0) {
+        setProductions(prodsData);
       }
-      
-      // Verificar si el usuario existe
-      if (!users.includes(loginDNI)) {
-        showMessage('❌ Usuario no encontrado\n\nEl DNI ingresado no está registrado en el sistema.', 4000);
-        return;
-      }
-      
-      // Verificar contraseña
-      if (userPasswords[loginDNI] === loginPassword) {
-        setCurrentUser(loginDNI);
-        setIsLoggedIn(true);
-        setIsAdmin(false);
-      } else {
-        showMessage('❌ Contraseña incorrecta\n\nLa contraseña ingresada no es correcta.\nSi olvidaste tu contraseña, usa la opción "¿Olvidaste tu contraseña?"', 5000);
-      }
-    };
+    } catch (error) {
+      console.error('Error cargando producciones usuario:', error);
+    }
+  } else {
+    showMessage('❌ Contraseña incorrecta\n\nLa contraseña ingresada no es correcta.\nSi olvidaste tu contraseña, usa la opción "¿Olvidaste tu contraseña?"', 5000);
+  }
+};
     
     const handleLogout = () => {
       setIsLoggedIn(false);
