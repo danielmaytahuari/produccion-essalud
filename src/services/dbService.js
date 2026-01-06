@@ -7,9 +7,9 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
-  query,     // ← AGREGAR
-  where      // ← AGREGAR
-} from 'firebase/firestore';
+  query,   
+  where  
+import { db } from '../firebase';
 
 // ==================== USUARIOS ====================
 
