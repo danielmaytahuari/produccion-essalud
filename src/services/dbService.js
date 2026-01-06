@@ -8,8 +8,9 @@ import {
   updateDoc, 
   deleteDoc,
   query,
-  where
-} from 'firebase/firestore';  // ← Debe cerrar aquí con };
+  where,
+  onSnapshot  
+} from 'firebase/firestore';
 
 import { db } from '../firebase';
 
