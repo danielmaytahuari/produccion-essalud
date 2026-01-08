@@ -631,6 +631,12 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
   // AGREGAR LEYENDA DE NOTAS
 const productionsWithNotes = filtered.filter(p => p.notas && p.notas.trim());
 
+console.log('===== DEBUG TABLA DE NOTAS =====');
+console.log('Total filtered:', filtered.length);
+console.log('Producciones con notas:', productionsWithNotes.length);
+console.log('Detalle:', productionsWithNotes);
+console.log('================================');
+
 if (productionsWithNotes.length > 0) {
   html += `
     <div style="margin-top: 30px; page-break-inside: avoid;">
