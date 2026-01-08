@@ -100,6 +100,7 @@ console.log('Todos los parámetros:', {
   date, sala, turno, cantidad, sopCategory, productionNotes
 });
     
+    function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
