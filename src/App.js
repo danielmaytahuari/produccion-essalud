@@ -628,55 +628,55 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
   
   html += `        </tbody>\n      </table>\n    </div>\n`;
 
-  // AGREGAR LEYENDA DE NOTAS
-const productionsWithNotes = filtered.filter(p => p.notas && p.notas.trim());
-
-console.log('===== DEBUG TABLA DE NOTAS =====');
-console.log('Total filtered:', filtered.length);
-console.log('Producciones con notas:', productionsWithNotes.length);
-console.log('Detalle:', productionsWithNotes);
-console.log('================================');
-
-if (productionsWithNotes.length > 0) {
-  html += `
-    <div style="margin-top: 30px; page-break-inside: avoid;">
-      <h3 style="color: #0369a1; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 15px;">
-        📝 NOTAS Y OBSERVACIONES
-      </h3>
-      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
-        <thead>
-          <tr>
-            <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 15%;">Fecha</th>
-            <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 25%;">Sala</th>
-            <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 12%;">Turno</th>
-            <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 48%;">Observaciones</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+    // AGREGAR LEYENDA DE NOTAS
+  const productionsWithNotes = filtered.filter(p => p.notas && p.notas.trim());
   
-  productionsWithNotes.forEach(p => {
+  console.log('===== DEBUG TABLA DE NOTAS =====');
+  console.log('Total filtered:', filtered.length);
+  console.log('Producciones con notas:', productionsWithNotes.length);
+  console.log('Detalle:', productionsWithNotes);
+  console.log('================================');
+  
+  if (productionsWithNotes.length > 0) {
     html += `
-          <tr>
-            <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.date}</td>
-            <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.sala}</td>
-            <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.turno}</td>
-            <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px; font-style: italic; color: #374151;">
-              ${p.notas}
-            </td>
-          </tr>
+      <div style="margin-top: 30px; page-break-inside: avoid;">
+        <h3 style="color: #0369a1; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 15px;">
+          📝 NOTAS Y OBSERVACIONES
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+          <thead>
+            <tr>
+              <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 15%;">Fecha</th>
+              <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 25%;">Sala</th>
+              <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 12%;">Turno</th>
+              <th style="background: #f1f5f9; padding: 8px; text-align: left; border: 1px solid #cbd5e1; width: 48%;">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
-  });
+    
+    productionsWithNotes.forEach(p => {
+      html += `
+            <tr>
+              <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.date}</td>
+              <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.sala}</td>
+              <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px;">${p.turno}</td>
+              <td style="padding: 6px; border: 1px solid #e5e7eb; font-size: 9px; font-style: italic; color: #374151;">
+                ${p.notas}
+              </td>
+            </tr>
+      `;
+    });
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
   
-  html += `
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-return html;
-};
+  return html;
+  };
 
 const exportToPDF = () => {
   console.log('exportToPDF llamado - isAdmin:', isAdmin);
@@ -3375,6 +3375,13 @@ const handleChangePassword = () => {
         alert('Por favor ingresa la cantidad');
         return;
       }
+
+console.log('🔍 DATOS A ENVIAR:');
+console.log('Notas:', productionNotes);
+console.log('Todos los parámetros:', {
+  date, sala, turno, cantidad, sopCategory, productionNotes
+});
+
       
      const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, procedimientos, productionNotes);
      if (success) {
