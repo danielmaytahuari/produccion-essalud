@@ -43,63 +43,6 @@ import React, { useState, useEffect } from 'react';
       return () => document.head.removeChild(style);
     }, []);
     
-    function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [sala, setSala] = useState('');
-  const [turno, setTurno] = useState('');
-  const [cantidad, setCantidad] = useState('');
-  const [sopCategory, setSopCategory] = useState('');
-  const [productionNotes, setProductionNotes] = useState('');  // ← AGREGAR ESTA LÍNEA
-  const [rxEspeciales, setRxEspeciales] = useState([
-    { examen: '', cantidad: '' },
-    { examen: '', cantidad: '' },
-    { examen: '', cantidad: '' }
-  ]);
-  const [procedimientos, setProcedimientos] = useState([
-    { nombre: '', cantidad: '' },
-    { nombre: '', cantidad: '' },
-    { nombre: '', cantidad: '' }
-  ]);
-    
-    const handleSubmit = () => {
-      if (!sala || !turno) {
-        alert('Por favor completa sala y turno');
-        return;
-      }
-      
-      if (sala === 'Rx Sop' && !sopCategory) {
-        alert('Por favor selecciona una categoría de Rx SOP');
-        return;
-      }
-      
-      if (sala === 'Rx especiales') {
-        const hasValid = rxEspeciales.some(esp => esp.examen.trim() && esp.cantidad);
-        if (!hasValid) {
-          alert('Por favor ingresa al menos un examen especial');
-          return;
-        }
-        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos, productionNotes);
-       if (success) {
-          setSala('');
-          setTurno('');
-          setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
-          setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
-          setProductionNotes('');  // ← AGREGAR ESTA LÍNEA
-        }
-        return;
-      }
-      
-      if (!cantidad) {
-        alert('Por favor ingresa la cantidad');
-        return;
-      }
-
-console.log('🔍 DATOS A ENVIAR:');
-console.log('Notas:', productionNotes);
-console.log('Todos los parámetros:', {
-  date, sala, turno, cantidad, sopCategory, productionNotes
-});
-    
     function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
@@ -216,7 +159,64 @@ console.log('Todos los parámetros:', {
     }
   }
 };
-        
+
+       function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sala, setSala] = useState('');
+  const [turno, setTurno] = useState('');
+  const [cantidad, setCantidad] = useState('');
+  const [sopCategory, setSopCategory] = useState('');
+  const [productionNotes, setProductionNotes] = useState('');  // ← AGREGAR ESTA LÍNEA
+  const [rxEspeciales, setRxEspeciales] = useState([
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' },
+    { examen: '', cantidad: '' }
+  ]);
+  const [procedimientos, setProcedimientos] = useState([
+    { nombre: '', cantidad: '' },
+    { nombre: '', cantidad: '' },
+    { nombre: '', cantidad: '' }
+  ]);
+    
+    const handleSubmit = () => {
+      if (!sala || !turno) {
+        alert('Por favor completa sala y turno');
+        return;
+      }
+      
+      if (sala === 'Rx Sop' && !sopCategory) {
+        alert('Por favor selecciona una categoría de Rx SOP');
+        return;
+      }
+      
+      if (sala === 'Rx especiales') {
+        const hasValid = rxEspeciales.some(esp => esp.examen.trim() && esp.cantidad);
+        if (!hasValid) {
+          alert('Por favor ingresa al menos un examen especial');
+          return;
+        }
+        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos, productionNotes);
+       if (success) {
+          setSala('');
+          setTurno('');
+          setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+          setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
+          setProductionNotes('');  // ← AGREGAR ESTA LÍNEA
+        }
+        return;
+      }
+      
+      if (!cantidad) {
+        alert('Por favor ingresa la cantidad');
+        return;
+      }
+
+console.log('🔍 DATOS A ENVIAR:');
+console.log('Notas:', productionNotes);
+console.log('Todos los parámetros:', {
+  date, sala, turno, cantidad, sopCategory, productionNotes
+});
+      
     const handleLogin = async () => {
   if (!loginDNI || !loginPassword) {
     showMessage('❌ Por favor completa todos los campos');
