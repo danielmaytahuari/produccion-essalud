@@ -3696,7 +3696,15 @@ const handleChangePassword = () => {
       </div>
     );
   }
-return <App />;
-}
+
+return (
+<div>
+ {/* JSX principal de App */}
+</div>
+ );
+}  // ← Cierra function App()
+
+return <App />;  // ← AGREGAR ESTA LÍNEA
+}  // ← AGREGAR ESTA LÍNEA - Cierra function ProductionSystem()
 
 export default ProductionSystem;
