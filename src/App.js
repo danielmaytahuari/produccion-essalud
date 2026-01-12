@@ -3696,4 +3696,4 @@ const handleChangePassword = () => {
     );
   }
 
-export default ProductionSystem;
+export default App;
