@@ -240,18 +240,6 @@ export const saveAdminConfig = async (adminDNI) => {
 
 // ==================== LISTENERS EN TIEMPO REAL ====================
 
-// Escuchar cambios en usuarios
-export const listenToUsers = (callback) => {
-  return onSnapshot(collection(db, 'users'), (snapshot) => {
-    const users = [];
-    snapshot.forEach(doc => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    callback(users);
-  });
-};
-
-// Escuchar cambios en producción
 export const listenToProduction = (callback) => {
   return onSnapshot(collection(db, 'production'), (snapshot) => {
     const records = [];
@@ -260,6 +248,7 @@ export const listenToProduction = (callback) => {
     });
     callback(records);
   });
+};
 
 // ==================== FUNCIONES DE REPORTES DE ERRORES ====================
 
