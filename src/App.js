@@ -26,7 +26,28 @@ import React, { useState, useEffect } from 'react';
   import { TrendingUp, Plus } from 'lucide-react';
   
      const ADMIN_KEY = 'Essalud2025*';
-           
+    
+    // Agregar estilos para animación
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `;
+      document.head.appendChild(style);
+      return () => document.head.removeChild(style);
+    }, []);
+    
     function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
@@ -69,11 +90,11 @@ import React, { useState, useEffect } from 'react';
     const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
     const [changePasswordData, setChangePasswordData] = useState({
-  oldPassword: '',
+    const [showChangePassword, setShowChangePassword] = useState(false);
+     oldPassword: '',
   newPassword: '',
   confirmPassword: ''
 });
-const [showChangePassword, setShowChangePassword] = useState(false);
     
 // Estados para sistema de reportes de errores
 const [showErrorReportForm, setShowErrorReportForm] = useState(false);
@@ -3676,5 +3697,7 @@ const handleChangePassword = () => {
       </div>
     );
   }
+
+}
 
 export default App;
