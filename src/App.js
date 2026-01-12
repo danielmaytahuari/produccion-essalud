@@ -91,8 +91,12 @@ import React, { useState, useEffect } from 'react';
     const [showAllProductions, setShowAllProductions] = useState(false);
     const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
-    const [showChangePassword, setShowChangePassword] = useState(false);
-    const [changePasswordData, setChangePasswordData] = useState({
+   const [changePasswordData, setChangePasswordData] = useState({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+});
+    
 // Estados para sistema de reportes de errores
 const [showErrorReportForm, setShowErrorReportForm] = useState(false);
 const [showMyReports, setShowMyReports] = useState(false);
