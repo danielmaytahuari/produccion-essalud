@@ -11,7 +11,14 @@ import {
   updateProduction as updateProductionDB,
   deleteProduction as deleteProductionDB,
   getSalas,
-  saveSalas
+  saveSalas,
+  createErrorReport,
+  getAllErrorReports,
+  getReportsByUser,
+  getPendingReports,
+  updateErrorReport,
+  validateErrorReport,
+  getReportsByMonth
 } from './services/dbService';
 
 
@@ -86,7 +93,25 @@ import React, { useState, useEffect } from 'react';
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [changePasswordData, setChangePasswordData] = useState({
-  currentPassword: '',
+// Estados para sistema de reportes de errores
+const [showErrorReportForm, setShowErrorReportForm] = useState(false);
+const [showMyReports, setShowMyReports] = useState(false);
+const [showAdminReports, setShowAdminReports] = useState(false);
+const [errorReports, setErrorReports] = useState([]);
+const [pendingReportsCount, setPendingReportsCount] = useState(0);
+
+// Estados del formulario de reporte
+const [reportPatientDNI, setReportPatientDNI] = useState('');
+const [reportPatientName, setReportPatientName] = useState('');
+const [reportExamDate, setReportExamDate] = useState(new Date().toISOString().split('T')[0]);
+const [reportExamTime, setReportExamTime] = useState('');
+const [reportExamType, setReportExamType] = useState('');
+const [reportErrorType, setReportErrorType] = useState('');
+const [reportErrorDescription, setReportErrorDescription] = useState('');
+const [reportRequestedAction, setReportRequestedAction] = useState('');
+const [showReportPreview, setShowReportPreview] = useState(false);
+const [previewReport, setPreviewReport] = useState(null);
+      currentPassword: '',
   newPassword: '',
   confirmPassword: ''
 });
@@ -101,6 +126,96 @@ import React, { useState, useEffect } from 'react';
     
     useEffect(() => {
   loadData();
+
+   // ==================== FUNCIONES DE REPORTES DE ERRORES ====================
+
+const loadErrorReports = async () => {
+  try {
+    if (isAdmin) {
+      const reports = await getAllErrorReports();
+      setErrorReports(reports);
+      const pending = await getPendingReports();
+      setPendingReportsCount(pending.length);
+    } else {
+      const reports = await getReportsByUser(currentUser);
+      setErrorReports(reports);
+    }
+  } catch (error) {
+    console.error('Error cargando reportes:', error);
+  }
+};
+
+const handleCreateErrorReport = async () => {
+  // Validaciones
+  if (!reportPatientDNI || !reportPatientName) {
+    showMessage('❌ Por favor completa DNI y nombre del paciente');
+    return;
+  }
+  
+  if (!reportExamDate || !reportExamTime || !reportExamType) {
+    showMessage('❌ Por favor completa todos los datos del examen');
+    return;
+  }
+  
+  if (!reportErrorType || !reportErrorDescription || !reportRequestedAction) {
+    showMessage('❌ Por favor completa la descripción del error y solicitud');
+    return;
+  }
+  
+  // Crear objeto de previsualización
+  const report = {
+    patientDNI: reportPatientDNI,
+    patientName: reportPatientName,
+    examDate: reportExamDate,
+    examTime: reportExamTime,
+    examType: reportExamType,
+    errorType: reportErrorType,
+    errorDescription: reportErrorDescription,
+    requestedAction: reportRequestedAction,
+    reportedBy: currentUser,
+    reportedByName: userFullNames[currentUser]
+  };
+  
+  setPreviewReport(report);
+  setShowReportPreview(true);
+};
+
+const confirmSendErrorReport = async () => {
+  try {
+    await createErrorReport(previewReport);
+    showMessage('✅ Reporte enviado correctamente');
+    
+    // Limpiar formulario
+    setReportPatientDNI('');
+    setReportPatientName('');
+    setReportExamDate(new Date().toISOString().split('T')[0]);
+    setReportExamTime('');
+    setReportExamType('');
+    setReportErrorType('');
+    setReportErrorDescription('');
+    setReportRequestedAction('');
+    setShowReportPreview(false);
+    setShowErrorReportForm(false);
+    
+    // Recargar reportes
+    await loadErrorReports();
+    
+  } catch (error) {
+    console.error('Error enviando reporte:', error);
+    showMessage('❌ Error al enviar el reporte');
+  }
+};
+
+const handleValidateReport = async (reportId) => {
+  try {
+    await validateErrorReport(reportId, currentUser, userFullNames[currentUser]);
+    showMessage('✅ Reporte validado correctamente');
+    await loadErrorReports();
+  } catch (error) {
+    console.error('Error validando reporte:', error);
+    showMessage('❌ Error al validar el reporte');
+  }
+};   
   
   // Listener de autenticación de Firebase
   const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -136,7 +251,9 @@ import React, { useState, useEffect } from 'react';
     if (salasData && salasData.length > 0) {
       setEditableItems(salasData);
     }
-    
+    if (isLoggedIn) {
+      await loadErrorReports();
+    }
     console.log('✅ Datos cargados desde Firebase');
   } catch (e) {
     console.error('❌ Error cargando desde Firebase:', e);
@@ -227,6 +344,21 @@ console.log('Todos los parámetros:', {
     setIsAdmin(true);
     setCurrentUser(loginDNI);
     setIsLoggedIn(true);
+
+    if (userPasswords[loginDNI] === loginPassword) {
+    setCurrentUser(loginDNI);
+    setIsLoggedIn(true);
+    setIsAdmin(false);
+      
+      // Cargar producciones del usuario
+    try {
+      const prodsData = await getProductionByUser(loginDNI);
+      if (prodsData && prodsData.length > 0) {
+        setProductions(prodsData);
+      }
+    } catch (error) {
+      console.error('Error cargando producciones usuario:', error);
+    }
     
     // Cargar TODAS las producciones para admin
     try {
@@ -237,7 +369,8 @@ console.log('Todos los parámetros:', {
     } catch (error) {
       console.error('Error cargando producciones admin:', error);
     }
-    return;
+await loadErrorReports();
+      return;
   }
   
   if (!users.includes(loginDNI)) {
@@ -258,6 +391,7 @@ console.log('Todos los parámetros:', {
       }
     } catch (error) {
       console.error('Error cargando producciones usuario:', error);
+      await loadErrorReports();
     }
   } else {
     showMessage('❌ Contraseña incorrecta\n\nLa contraseña ingresada no es correcta.\nSi olvidaste tu contraseña, usa la opción "¿Olvidaste tu contraseña?"', 5000);
