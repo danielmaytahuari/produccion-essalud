@@ -115,9 +115,6 @@ const [reportErrorDescription, setReportErrorDescription] = useState('');
 const [reportRequestedAction, setReportRequestedAction] = useState('');
 const [showReportPreview, setShowReportPreview] = useState(false);
 const [previewReport, setPreviewReport] = useState(null);
-      currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
 });
     const [editingUser, setEditingUser] = useState(null);
     const [editUserData, setEditUserData] = useState({ fullname: '', password: '' });
