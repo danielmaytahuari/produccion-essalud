@@ -3693,13 +3693,6 @@ const handleChangePassword = () => {
         >
           Registrar Producción
         </button>
-       </div>
-     };
-    }
-
-   );
+      </div>
+    );
   }
-    
-};
-    
-export default App;
