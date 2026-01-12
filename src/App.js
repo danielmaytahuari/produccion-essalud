@@ -69,10 +69,11 @@ import React, { useState, useEffect } from 'react';
     const [adminProductionMonth, setAdminProductionMonth] = useState(new Date().toISOString().slice(0, 7));
     const [filterUserDNI, setFilterUserDNI] = useState(''); // Filtro por usuario
     const [changePasswordData, setChangePasswordData] = useState({
-    const [showChangePassword, setShowChangePassword] = useState(false);
-     oldPassword: '',
+  oldPassword: '',
   newPassword: '',
   confirmPassword: ''
+});
+const [showChangePassword, setShowChangePassword] = useState(false);
 });
     
 // Estados para sistema de reportes de errores
