@@ -260,4 +260,137 @@ export const listenToProduction = (callback) => {
     });
     callback(records);
   });
+
+// ==================== FUNCIONES DE REPORTES DE ERRORES ====================
+
+export const createErrorReport = async (reportData) => {
+  try {
+    const reportsRef = collection(db, 'error_reports');
+    
+    // Generar número correlativo mensual
+    const month = reportData.examDate.substring(0, 7); // "2026-01"
+    const monthReportsQuery = query(
+      reportsRef,
+      where('month', '==', month),
+      orderBy('reportNumber', 'desc'),
+      limit(1)
+    );
+    
+    const monthReportsSnapshot = await getDocs(monthReportsQuery);
+    const lastNumber = monthReportsSnapshot.empty ? 0 : monthReportsSnapshot.docs[0].data().reportNumber;
+    const newNumber = lastNumber + 1;
+    
+    const reportId = `${month}-${String(newNumber).padStart(3, '0')}`;
+    
+    const newReport = {
+      ...reportData,
+      id: reportId,
+      reportNumber: newNumber,
+      month: month,
+      status: 'pending',
+      validatedBy: null,
+      validatedByName: null,
+      validationDate: null,
+      validationNotes: '',
+      checked: false,
+      reportDate: new Date().toISOString()
+    };
+    
+    await setDoc(doc(db, 'error_reports', reportId), newReport);
+    return newReport;
+  } catch (error) {
+    console.error('Error creando reporte:', error);
+    throw error;
+  }
+};
+
+export const getAllErrorReports = async () => {
+  try {
+    const reportsRef = collection(db, 'error_reports');
+    const q = query(reportsRef, orderBy('reportDate', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error obteniendo reportes:', error);
+    return [];
+  }
+};
+
+export const getReportsByUser = async (userDNI) => {
+  try {
+    const reportsRef = collection(db, 'error_reports');
+    const q = query(
+      reportsRef,
+      where('reportedBy', '==', userDNI),
+      orderBy('reportDate', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error obteniendo reportes del usuario:', error);
+    return [];
+  }
+};
+
+export const getPendingReports = async () => {
+  try {
+    const reportsRef = collection(db, 'error_reports');
+    const q = query(
+      reportsRef,
+      where('status', '==', 'pending'),
+      orderBy('reportDate', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error obteniendo reportes pendientes:', error);
+    return [];
+  }
+};
+
+export const updateErrorReport = async (reportId, updates) => {
+  try {
+    const reportRef = doc(db, 'error_reports', reportId);
+    await updateDoc(reportRef, updates);
+    return true;
+  } catch (error) {
+    console.error('Error actualizando reporte:', error);
+    throw error;
+  }
+};
+
+export const validateErrorReport = async (reportId, adminDNI, adminName, notes = '') => {
+  try {
+    const reportRef = doc(db, 'error_reports', reportId);
+    await updateDoc(reportRef, {
+      status: 'validated',
+      validatedBy: adminDNI,
+      validatedByName: adminName,
+      validationDate: new Date().toISOString(),
+      validationNotes: notes,
+      checked: true
+    });
+    return true;
+  } catch (error) {
+    console.error('Error validando reporte:', error);
+    throw error;
+  }
+};
+
+export const getReportsByMonth = async (month) => {
+  try {
+    const reportsRef = collection(db, 'error_reports');
+    const q = query(
+      reportsRef,
+      where('month', '==', month),
+      orderBy('reportNumber', 'asc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error obteniendo reportes del mes:', error);
+    return [];
+  }
+};
+  
 };
