@@ -74,7 +74,6 @@ import React, { useState, useEffect } from 'react';
   confirmPassword: ''
 });
 const [showChangePassword, setShowChangePassword] = useState(false);
-});
     
 // Estados para sistema de reportes de errores
 const [showErrorReportForm, setShowErrorReportForm] = useState(false);
