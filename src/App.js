@@ -115,11 +115,11 @@ const [reportErrorDescription, setReportErrorDescription] = useState('');
 const [reportRequestedAction, setReportRequestedAction] = useState('');
 const [showReportPreview, setShowReportPreview] = useState(false);
 const [previewReport, setPreviewReport] = useState(null);
-});
-    const [editingUser, setEditingUser] = useState(null);
-    const [editUserData, setEditUserData] = useState({ fullname: '', password: '' });
-    // Función helper para mostrar mensajes
-    const showMessage = (message, duration = 3000) => {
+      
+const [editingUser, setEditingUser] = useState(null);
+const [editUserData, setEditUserData] = useState({ fullname: '', password: '' });
+// Función helper para mostrar mensajes
+const showMessage = (message, duration = 3000) => {
       setSuccessMessageText(message);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), duration);
