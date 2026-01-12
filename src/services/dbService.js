@@ -9,7 +9,9 @@ import {
   deleteDoc,
   query,
   where,
-  onSnapshot  
+  onSnapshot,
+  orderBy, 
+  limit 
 } from 'firebase/firestore';
 
 import { db } from '../firebase';
