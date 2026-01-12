@@ -381,5 +381,3 @@ export const getReportsByMonth = async (month) => {
     return [];
   }
 };
-  
-};
