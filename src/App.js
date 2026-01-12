@@ -3696,7 +3696,6 @@ const handleChangePassword = () => {
     );
   }
 
-);
 }
 
 export default App;
