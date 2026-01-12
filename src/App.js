@@ -25,8 +25,7 @@ import {
 import React, { useState, useEffect } from 'react';
   import { TrendingUp, Plus } from 'lucide-react';
   
-  export default function ProductionSystem() {
-    const ADMIN_KEY = 'Essalud2025*';
+     const ADMIN_KEY = 'Essalud2025*';
     
     // Agregar estilos para animación
     React.useEffect(() => {
