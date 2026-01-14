@@ -54,7 +54,7 @@ import React, { useState, useEffect } from 'react';
     const [showRecovery, setShowRecovery] = useState(false);
     const [recoveryDNI, setRecoveryDNI] = useState('');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [editableItems, setEditableItems] = useState([['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']]);
+    const [editableItems, setEditableItems] = useState([...['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']]);
     const [newSalaName, setNewSalaName] = useState('');
     const [editingProduction, setEditingProduction] = useState(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
@@ -258,7 +258,7 @@ const handleValidateReport = async (reportId) => {
   }
 };
 
-function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
+       function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [sala, setSala] = useState('');
   const [turno, setTurno] = useState('');
@@ -512,10 +512,7 @@ await loadErrorReports();
   }
   
   try {
-    const updatedProd = {
-      ...editingProduction,
-      cantidad: Number(editingProduction.cantidad)
-    };
+    const updatedProd = {...editingProduction, cantidad: Number(editingProduction.cantidad)};
     
     // Actualizar en Firebase
     await updateProductionDB(updatedProd.id, updatedProd);
@@ -2687,8 +2684,21 @@ const handleChangePassword = () => {
               />
             </div>
             )}
-              
-             {!isAdmin && (
+              {/* Campo de Notas */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    📝 Notas / Observaciones (opcional)
+  </label>
+  <textarea
+    value={productionNotes}
+    onChange={(e) => setProductionNotes(e.target.value)}
+    placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    rows="2"
+  />
+</div>
+
+            {!isAdmin && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">Mi Producción del Mes</h2>
               
