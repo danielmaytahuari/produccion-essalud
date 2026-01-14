@@ -3675,8 +3675,6 @@ const handleChangePassword = () => {
         </button>
       </div>
     );
-  }
-
-}
+   }
 
 export default App;
