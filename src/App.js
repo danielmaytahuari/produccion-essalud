@@ -258,7 +258,7 @@ const handleValidateReport = async (reportId) => {
   }
 };
 
-       function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
+function ProductionForm({ currentUser, items, sopCategories, onSubmit }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [sala, setSala] = useState('');
   const [turno, setTurno] = useState('');
