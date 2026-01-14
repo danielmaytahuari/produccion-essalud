@@ -3672,11 +3672,6 @@ const handleChangePassword = () => {
           className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
         >
           Registrar Producción
-       <button
-          onClick={handleSubmit}
-          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-        >
-          Registrar Producción
         </button>
       </div>
     );
