@@ -309,12 +309,200 @@ const handleValidateReport = async (reportId) => {
         return;
       }
 
-console.log('🔍 DATOS A ENVIAR:');
-console.log('Notas:', productionNotes);
-console.log('Todos los parámetros:', {
-  date, sala, turno, cantidad, sopCategory, productionNotes
-});
-      
+const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, procedimientos, productionNotes);
+     if (success) {
+    setSala('');
+    setTurno('');
+    setCantidad('');
+    setSopCategory('');
+    setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
+    setProductionNotes('');  
+  }
+};
+    
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+            <input
+              type="text"
+              value={currentUser}
+              disabled
+              className="w-full px-4 py-2 border border-green-200 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sala</label>
+            <select
+              value={sala}
+              onChange={(e) => {
+                setSala(e.target.value);
+                setSopCategory('');
+                setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+              }}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            >
+              <option value="">Seleccionar sala</option>
+              {items.map(item => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </div>
+          
+          {sala === 'Rx Sop' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría Rx SOP</label>
+              <select
+                value={sopCategory}
+                onChange={(e) => setSopCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-green-200 rounded-lg"
+              >
+                <option value="">Seleccionar categoría</option>
+                {sopCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+            <select
+              value={turno}
+              onChange={(e) => setTurno(e.target.value)}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            >
+              <option value="">Seleccionar turno</option>
+              <option value="Diurno">Diurno</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+          
+    {sala !== 'Rx especiales' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+              <input
+                type="number"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                placeholder="0"
+                className="w-full px-4 py-2 border border-green-200 rounded-lg"
+              />
+            </div>
+          )}
+        </div>  
+    {sala === 'Rx especiales' && (
+         <div>
+    <div className="bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
+      {rxEspeciales.map((esp, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
+            <input
+              type="text"
+              value={esp.examen}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].examen = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="Nombre del examen"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={esp.cantidad}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].cantidad = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <div className="bg-green-50 p-4 rounded-lg mt-4">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
+      {procedimientos.map((proc, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
+            <input
+              type="text"
+              value={proc.nombre}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].nombre = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="Nombre del procedimiento"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={proc.cantidad}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].cantidad = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+        {/* Campo de Notas */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            📝 Notas / Observaciones (opcional)
+          </label>
+          <textarea
+            value={productionNotes}
+            onChange={(e) => setProductionNotes(e.target.value)}
+            placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            rows="2"
+          />
+        </div>
+        
+        <button
+          onClick={handleSubmit}
+          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
+        >
+          Registrar Producción
+        </button>
+      </div>
+    );
+  }
+    
     const handleLogin = async () => {
   if (!loginDNI || !loginPassword) {
     showMessage('❌ Por favor completa todos los campos');
@@ -2697,6 +2885,976 @@ const handleChangePassword = () => {
     rows="2"
   />
 </div>
+
+            {!isAdmin && (
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">Mi Producción del Mes</h2>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+                <input
+                  type="month"
+                  value={myProductionMonth}
+                  onChange={(e) => setMyProductionMonth(e.target.value)}
+                  className="px-4 py-2 border border-purple-200 rounded-lg"
+                />
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 max-h-96 overflow-y-auto">
+                {getMyProductions().length > 0 ? (
+                  <div className="space-y-2">
+                    {getMyProductions().map(prod => (
+                      <div key={prod.id} className="border border-purple-200 rounded-lg p-3 hover:bg-purple-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="text-sm font-semibold text-gray-700">
+                              {prod.date.split('-').reverse().join('/')} - {prod.turno}
+                            </div>
+                            <div className="text-sm text-gray-600">{prod.sala}</div>
+                            {prod.rxEspecialExamen && (
+                              <div className="text-xs text-blue-600">Examen: {prod.rxEspecialExamen}</div>
+                            )}
+                            {prod.sopCategory && (
+                              <div className="text-xs text-orange-600">Categoría: {prod.sopCategory}</div>
+                            )}
+                            <div className="text-lg font-bold text-purple-700">Cantidad: {prod.cantidad}</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => editProduction(prod)}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => deleteProduction(prod.id)}
+                              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                            >
+                              🗑️ Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="mt-4 p-3 bg-purple-100 rounded-lg">
+                      <div className="text-sm font-semibold text-purple-800">
+                        Total: {getMyProductions().reduce((sum, p) => sum + Number(p.cantidad), 0)}
+                      </div>
+                      <div className="text-xs text-purple-600">{getMyProductions().length} registro(s)</div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No hay registros para este mes</p>
+                )}
+              </div>
+            </div>
+            )}
+
+            {!isAdmin && (
+            <CalendarReport 
+              currentUser={currentUser}
+              userFullNames={userFullNames}
+              productions={productions}
+              myProductionMonth={myProductionMonth}
+              setMyProductionMonth={setMyProductionMonth}
+            />
+            )}
+
+            {!isAdmin && (
+            <ReportSection 
+              reportMonth={reportMonth}
+              setReportMonth={setReportMonth}
+              report={generateReport()}
+              userFullNames={userFullNames}
+              items={editableItems}
+              exportToTXT={exportToTXT}
+              exportToPDF={exportToPDF}
+              isAdmin={isAdmin}
+              currentUser={currentUser}
+            />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  function CalendarReport({ currentUser, userFullNames, productions, myProductionMonth, setMyProductionMonth }) {
+    const [showCalendar, setShowCalendar] = useState(false);
+    
+    const generateCalendarData = () => {
+      // Filtrar producción del usuario y mes actual
+      const filtered = productions.filter(p => 
+        p.user === currentUser && p.date.startsWith(myProductionMonth)
+      );
+
+      const [year, month] = myProductionMonth.split('-');
+      
+      if (filtered.length === 0) return null;
+      
+      // Obtener días del mes
+      const [yearCal, monthCal] = myProductionMonth.split('-');
+      const daysInMonth = new Date(yearCal, monthCal, 0).getDate();
+      const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
+      
+      // Crear estructura: { "Sala/Turno": { día: cantidad } }
+      const matrix = {};
+      
+      filtered.forEach(p => {
+        const day = parseInt(p.date.split('-')[2]);
+        const key = `${p.sala} / ${p.turno}`;
+        
+        if (!matrix[key]) {
+          matrix[key] = {};
+        }
+        
+        matrix[key][day] = (matrix[key][day] || 0) + Number(p.cantidad);
+      });
+      
+      // Ordenar las filas por turno (Mañana, Tarde, Diurno, Noche)
+      const turnoOrder = { 'Mañana': 1, 'Tarde': 2, 'Diurno': 3, 'Noche': 4 };
+      const sortedMatrix = {};
+      
+      Object.keys(matrix).sort((a, b) => {
+        const turnoA = a.split(' / ')[1];
+        const turnoB = b.split(' / ')[1];
+        const orderA = turnoOrder[turnoA] || 5;
+        const orderB = turnoOrder[turnoB] || 5;
+        
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        // Si es el mismo turno, ordenar por sala alfabéticamente
+        return a.localeCompare(b);
+      }).forEach(key => {
+        sortedMatrix[key] = matrix[key];
+      });
+      
+      return { matrix: sortedMatrix, days };
+    };
+    
+    const data = generateCalendarData();
+    
+    if (!data) {
+      return (
+        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">📅 Reporte Calendario Individual</h2>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+            <input
+              type="month"
+              value={myProductionMonth}
+              onChange={(e) => setMyProductionMonth(e.target.value)}
+              className="px-4 py-2 border border-cyan-200 rounded-lg"
+            />
+          </div>
+          <p className="text-gray-500 text-center py-8">No hay registros para este mes</p>
+        </div>
+      );
+    }
+    
+    const { matrix, days } = data;
+    const monthName = new Date(myProductionMonth + '-01').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+    
+    // Calcular totales por día
+    const dayTotals = {};
+    Object.values(matrix).forEach(dayData => {
+      Object.entries(dayData).forEach(([day, cantidad]) => {
+        dayTotals[day] = (dayTotals[day] || 0) + cantidad;
+      });
+    });
+    
+    // Calcular totales por fila
+    const rowTotals = {};
+    Object.entries(matrix).forEach(([key, dayData]) => {
+      rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
+    });
+    
+    const exportCalendarToPDF = () => {
+      const userName = userFullNames[currentUser] || currentUser;
+      
+      let html = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Reporte Calendario - ${userName}</title>
+    <style>
+      body { 
+        font-family: Arial, sans-serif; 
+        margin: 20px;
+        font-size: 11px;
+      }
+      h1 { 
+        color: #1e40af; 
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      h2 {
+        color: #059669;
+        text-align: center;
+        margin-top: 0;
+        font-size: 16px;
+      }
+      table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 20px 0;
+        font-size: 10px;
+      }
+      th { 
+        background: #1e40af; 
+        color: white; 
+        padding: 8px 4px; 
+        text-align: center;
+        border: 1px solid #1e3a8a;
+        font-size: 9px;
+      }
+      td { 
+        padding: 6px 4px; 
+        border: 1px solid #cbd5e1;
+        text-align: center;
+      }
+      .sala-col {
+        background: #f1f5f9;
+        font-weight: bold;
+        text-align: left;
+        padding-left: 8px;
+        max-width: 180px;
+        font-size: 9px;
+      }
+      .total-col {
+        background: #dbeafe;
+        font-weight: bold;
+        color: #1e40af;
+      }
+      .total-row td {
+        background: #fef3c7;
+        font-weight: bold;
+        color: #92400e;
+      }
+      .has-value {
+        background: #dcfce7;
+        font-weight: bold;
+        color: #166534;
+      }
+      .empty {
+        background: #f9fafb;
+        color: #9ca3af;
+      }
+      .print-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 1000;
+      }
+      @media print {
+        .print-button { display: none; }
+        body { margin: 0; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <h1 style="text-align: center; color: #1e40af; margin-bottom: 20px;">📅 REPORTE CALENDARIO DE PRODUCCIÓN</h1>
+    
+    <div style="border-top: 3px solid #0284c7; border-bottom: 3px solid #0284c7; padding: 15px 10px; margin: 20px 0; line-height: 1.8;">
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Red Asistencial:</strong> Sabogal
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Servicio:</strong> Radiodiagnóstico y Ecografía
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Especialidad:</strong> Radiología
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Cargo:</strong> Tecnólogo Médico
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">Usuario:</strong> ${userName}
+      </div>
+      <div style="margin-bottom: 6px; font-size: 12px;">
+        <strong style="color: #0369a1;">DNI:</strong> ${currentUser}
+      </div>
+      <div style="font-size: 12px;">
+        <strong style="color: #0369a1;">Mes:</strong> ${monthName}
+      </div>
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th class="sala-col">Sala / Turno</th>
+  `;
+      
+      // Encabezados de días
+      days.forEach(day => {
+        html += `        <th>${day}</th>\n`;
+      });
+      html += `        <th class="total-col">Total</th>\n`;
+      html += `      </tr>\n    </thead>\n    <tbody>\n`;
+      
+      // Filas de datos
+      Object.entries(matrix).forEach(([key, dayData]) => {
+        html += `      <tr>\n`;
+        html += `        <td class="sala-col">${key}</td>\n`;
+        
+        days.forEach(day => {
+          const value = dayData[day] || '';
+          const className = value ? 'has-value' : 'empty';
+          html += `        <td class="${className}">${value || '-'}</td>\n`;
+        });
+        
+        html += `        <td class="total-col">${rowTotals[key]}</td>\n`;
+        html += `      </tr>\n`;
+      });
+      
+      // Fila de totales
+      html += `      <tr class="total-row">\n`;
+      html += `        <td class="sala-col">TOTAL POR DÍA</td>\n`;
+      
+      days.forEach(day => {
+        const total = dayTotals[day] || '';
+        html += `        <td>${total || '-'}</td>\n`;
+      });
+      
+      const grandTotal = Object.values(rowTotals).reduce((sum, val) => sum + val, 0);
+      html += `        <td>${grandTotal}</td>\n`;
+      html += `      </tr>\n`;
+      
+      html += `    </tbody>\n  </table>\n</body>\n</html>`;
+      
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reporte-calendario-${userName.replace(/\s+/g, '-')}-${myProductionMonth}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    
+    return (
+      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-700">📅 Reporte Calendario Individual</h2>
+          <button
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="px-3 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition text-sm font-semibold"
+          >
+            {showCalendar ? '📊 Ver Lista' : '📅 Ver Calendario'}
+          </button>
+        </div>
+        
+        <div className="mb-4 flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+            <input
+              type="month"
+              value={myProductionMonth}
+              onChange={(e) => setMyProductionMonth(e.target.value)}
+              className="px-4 py-2 border border-cyan-200 rounded-lg w-full"
+            />
+          </div>
+          {showCalendar && (
+            <button
+              onClick={exportCalendarToPDF}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold whitespace-nowrap"
+            >
+              📑 Exportar PDF
+            </button>
+          )}
+        </div>
+        
+        {showCalendar ? (
+          <div className="bg-white rounded-lg p-4 overflow-x-auto">
+            <div className="mb-4 pb-3">
+              <div className="border-t-2 border-b-2 border-cyan-600 py-3 mb-3 space-y-1">
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Red Asistencial:</strong> Sabogal
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Servicio:</strong> Radiodiagnóstico y Ecografía
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Especialidad:</strong> Radiología
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Cargo:</strong> Tecnólogo Médico
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Usuario:</strong> {userFullNames[currentUser] || currentUser}
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">DNI:</strong> {currentUser}
+                </div>
+                <div className="text-sm text-gray-700">
+                  <strong className="text-cyan-800">Mes:</strong> {monthName}
+                </div>
+              </div>
+            </div>
+            
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr>
+                  <th className="bg-cyan-700 text-white p-2 border border-cyan-800 text-left sticky left-0 z-10 min-w-[180px]">
+                    Sala / Turno
+                  </th>
+                  {days.map(day => (
+                    <th key={day} className="bg-cyan-700 text-white p-2 border border-cyan-800 min-w-[35px]">
+                      {day}
+                    </th>
+                  ))}
+                  <th className="bg-blue-800 text-white p-2 border border-blue-900 font-bold min-w-[50px]">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(matrix).map(([key, dayData]) => (
+                  <tr key={key} className="hover:bg-cyan-50">
+                    <td className="bg-gray-50 font-semibold p-2 border border-gray-300 text-left sticky left-0 z-10">
+                      {key}
+                    </td>
+                    {days.map(day => {
+                      const value = dayData[day];
+                      return (
+                        <td 
+                          key={day} 
+                          className={`p-2 border border-gray-300 text-center ${
+                            value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
+                          }`}
+                        >
+                          {value || '-'}
+                        </td>
+                      );
+                    })}
+                    <td className="bg-blue-100 font-bold text-blue-800 p-2 border border-blue-300 text-center">
+                      {rowTotals[key]}
+                    </td>
+                  </tr>
+                ))}
+                
+                <tr className="bg-yellow-100">
+                  <td className="font-bold p-2 border border-gray-300 text-left sticky left-0 z-10">
+                    TOTAL POR DÍA
+                  </td>
+                  {days.map(day => {
+                    const total = dayTotals[day];
+                    return (
+                      <td 
+                        key={day} 
+                        className={`p-2 border border-gray-300 text-center font-bold ${
+                          total ? 'text-amber-800' : 'text-gray-400'
+                        }`}
+                      >
+                        {total || '-'}
+                      </td>
+                    );
+                  })}
+                  <td className="bg-amber-200 font-bold text-amber-900 p-2 border border-amber-400 text-center text-base">
+                    {Object.values(rowTotals).reduce((sum, val) => sum + val, 0)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+  
+  function CalendarTable({ userId, reportMonth, productions }) {
+    // Filtrar producción del usuario específico
+    const filtered = productions.filter(p => p.user === userId);
+    
+    if (filtered.length === 0) {
+      return <p className="text-gray-500 text-sm text-center py-2">Sin registros</p>;
+    }
+    
+    // Obtener días del mes
+    const [year, month] = reportMonth.split('-');
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
+    
+    // Crear estructura: { "Sala/Turno": { día: cantidad } }
+    const matrix = {};
+    
+    filtered.forEach(p => {
+      const day = parseInt(p.date.split('-')[2]);
+      const key = `${p.sala} / ${p.turno}`;
+      
+      if (!matrix[key]) {
+        matrix[key] = {};
+      }
+      
+      matrix[key][day] = (matrix[key][day] || 0) + Number(p.cantidad);
+    });
+    
+    // Ordenar las filas por turno (Mañana, Tarde, Diurno, Noche)
+    const turnoOrder = { 'Mañana': 1, 'Tarde': 2, 'Diurno': 3, 'Noche': 4 };
+    const sortedMatrix = {};
+    
+    Object.keys(matrix).sort((a, b) => {
+      const turnoA = a.split(' / ')[1];
+      const turnoB = b.split(' / ')[1];
+      const orderA = turnoOrder[turnoA] || 5;
+      const orderB = turnoOrder[turnoB] || 5;
+      
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return a.localeCompare(b);
+    }).forEach(key => {
+      sortedMatrix[key] = matrix[key];
+    });
+    
+    // Calcular totales por día
+    const dayTotals = {};
+    Object.values(sortedMatrix).forEach(dayData => {
+      Object.entries(dayData).forEach(([day, cantidad]) => {
+        dayTotals[day] = (dayTotals[day] || 0) + cantidad;
+      });
+    });
+    
+    // Calcular totales por fila
+    const rowTotals = {};
+    Object.entries(sortedMatrix).forEach(([key, dayData]) => {
+      rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
+    });
+    
+    return (
+      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="bg-cyan-700 text-white p-2 border border-cyan-800 text-left sticky left-0 z-10 min-w-[140px] text-[10px]">
+                Sala / Turno
+              </th>
+              {days.map(day => (
+                <th key={day} className="bg-cyan-700 text-white p-1 border border-cyan-800 min-w-[28px] text-[9px]">
+                  {day}
+                </th>
+              ))}
+              <th className="bg-blue-800 text-white p-2 border border-blue-900 font-bold min-w-[45px] text-[10px]">
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(sortedMatrix).map(([key, dayData]) => (
+              <tr key={key} className="hover:bg-cyan-50">
+                <td className="bg-gray-50 font-semibold p-2 border border-gray-300 text-left sticky left-0 z-10 text-[9px]">
+                  {key}
+                </td>
+                {days.map(day => {
+                  const value = dayData[day];
+                  return (
+                    <td 
+                      key={day} 
+                      className={`p-1 border border-gray-300 text-center text-[9px] ${
+                        value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
+                      }`}
+                    >
+                      {value || '-'}
+                    </td>
+                  );
+                })}
+                <td className="bg-blue-100 font-bold text-blue-800 p-2 border border-blue-300 text-center text-[10px]">
+                  {rowTotals[key]}
+                </td>
+              </tr>
+            ))}
+            
+            <tr className="bg-yellow-100">
+              <td className="font-bold p-2 border border-gray-300 text-left sticky left-0 z-10 text-[9px]">
+                TOTAL DÍA
+              </td>
+              {days.map(day => {
+                const total = dayTotals[day];
+                return (
+                  <td 
+                    key={day} 
+                    className={`p-1 border border-gray-300 text-center font-bold text-[9px] ${
+                      total ? 'text-amber-800' : 'text-gray-400'
+                    }`}
+                  >
+                    {total || '-'}
+                  </td>
+                );
+              })}
+              <td className="bg-amber-200 font-bold text-amber-900 p-2 border border-amber-400 text-center text-[11px]">
+                {Object.values(rowTotals).reduce((sum, val) => sum + val, 0)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  
+  function ReportSection({ reportMonth, setReportMonth, report, userFullNames, items, exportToTXT, exportToPDF, isAdmin, currentUser }) {
+    return (
+      <div className="bg-purple-50 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-700">Reporte Mensual</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={exportToTXT}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+            >
+              📄 Exportar TXT
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-semibold"
+            >
+              📑 Exportar PDF
+            </button>
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+          <input
+            type="month"
+            value={reportMonth}
+            onChange={(e) => setReportMonth(e.target.value)}
+            className="px-4 py-2 border border-purple-200 rounded-lg"
+          />
+        </div>
+        
+        <div className="bg-white rounded-lg p-4">
+          <div className="mb-4 p-4 bg-purple-100 rounded-lg">
+            <div className="text-2xl font-bold text-purple-700">{report.totalGeneral}</div>
+            <div className="text-sm text-purple-600">Total General ({report.recordCount} registros)</div>
+          </div>
+          
+          <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+            <h3 className="font-semibold text-gray-800 mb-3">Totales por Turno</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3 bg-white rounded-lg text-center">
+                <div className="text-xs text-gray-600 mb-1">Diurno</div>
+                <div className="text-xl font-bold text-green-700">{report.byTurno.Diurno}</div>
+              </div>
+              <div className="p-3 bg-white rounded-lg text-center">
+                <div className="text-xs text-gray-600 mb-1">Mañana</div>
+                <div className="text-xl font-bold text-blue-700">{report.byTurno.Mañana}</div>
+              </div>
+              <div className="p-3 bg-white rounded-lg text-center">
+                <div className="text-xs text-gray-600 mb-1">Tarde</div>
+                <div className="text-xl font-bold text-orange-700">{report.byTurno.Tarde}</div>
+              </div>
+              <div className="p-3 bg-white rounded-lg text-center">
+                <div className="text-xs text-gray-600 mb-1">Noche</div>
+                <div className="text-xl font-bold text-indigo-700">{report.byTurno.Noche}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg">
+            <h3 className="font-semibold text-gray-800 mb-3">Totales por Sala</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              {items.map(item => (
+                report.bySala[item] > 0 && (
+                  <div key={item} className="p-2 bg-purple-50 rounded">
+                    <div className="text-xs text-gray-600">{item}</div>
+                    <div className="font-semibold text-purple-700">{report.bySala[item]}</div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+          
+          {Object.values(report.bySopCategory).some(val => val > 0) && (
+            <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+              <h3 className="font-semibold text-gray-800 mb-3">🏥 Totales por Categoría Rx SOP</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                {['Urologia', 'Columna neuro', 'Panangiografia cerebral', 'Cirugia pediatrica', 'Traumatologia', 'Terapia del dolor', 'Marcapaso', 'Hemodinamia', 'Cirugia general', 'Otro'].map(cat => (
+                  report.bySopCategory[cat] > 0 && (
+                    <div key={cat} className="p-2 bg-white rounded border border-orange-200">
+                      <div className="text-xs text-gray-600">{cat}</div>
+                      <div className="font-semibold text-orange-700">{report.bySopCategory[cat]}</div>
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {Object.keys(report.byRxEspecial).length > 0 && (
+            <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+              <h3 className="font-semibold text-gray-800 mb-3">🔬 Totales de Exámenes Especiales</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                {Object.entries(report.byRxEspecial).map(([examen, total]) => (
+                  <div key={examen} className="p-2 bg-white rounded border border-blue-200">
+                    <div className="text-xs text-gray-600">{examen}</div>
+                    <div className="font-semibold text-blue-700">{total}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <h3 className="font-semibold text-gray-800 mb-3">Detalle por Usuario</h3>
+          {Object.entries(report.byUser)
+            .filter(([user]) => isAdmin || user === currentUser) // Solo mostrar el usuario actual si no es admin
+            .map(([user, data]) => {
+            const userSopTotal = Object.values(data.sopCategories || {}).reduce((sum, val) => sum + val, 0);
+            return (
+            <div key={user} className="mb-4 p-4 border border-gray-200 rounded-lg">
+              <div className="font-semibold text-gray-800 mb-2">{userFullNames[user] || user}</div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-600">Total</div>
+                  <div className="font-semibold text-gray-800">{data.total}</div>
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-600">Horas trabajadas</div>
+                  <div className="font-semibold text-gray-800">{data.horasTrabajadas}h</div>
+                </div>
+              </div>
+              
+              <div className="mt-3">
+                <CalendarTable 
+                  userId={user}
+                  reportMonth={reportMonth}
+                  productions={report.productions}
+                />
+              </div>
+              
+              {userSopTotal > 0 && (
+                <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="text-xs font-semibold text-orange-800 mb-2">🏥 Rx SOP por categoría:</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                    {['Urologia', 'Columna neuro', 'Panangiografia cerebral', 'Cirugia pediatrica', 'Traumatologia', 'Terapia del dolor', 'Marcapaso', 'Hemodinamia', 'Cirugia general', 'Otro'].map(cat => (
+                      data.sopCategories[cat] > 0 && (
+                        <div key={cat} className="flex justify-between items-center">
+                          <span className="text-gray-600">{cat}:</span>
+                          <span className="font-semibold text-orange-700">{data.sopCategories[cat]}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {Object.keys(data.rxEspeciales || {}).length > 0 && Object.values(data.rxEspeciales).reduce((sum, val) => sum + val, 0) > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-xs font-semibold text-blue-800 mb-2">🔬 Exámenes Especiales:</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                    {Object.entries(data.rxEspeciales).filter(([, cant]) => cant > 0).map(([examen, cantidad]) => (
+                      <div key={examen} className="flex justify-between items-center">
+                        <span className="text-gray-600">{examen}:</span>
+                        <span className="font-semibold text-blue-700">{cantidad}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )})}
+          
+          
+          {Object.entries(report.byUser).filter(([user]) => isAdmin || user === currentUser).length === 0 && (
+            <p className="text-gray-500 text-center py-4">No hay datos para este mes</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
+     const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, procedimientos, productionNotes);
+     if (success) {
+    setSala('');
+    setTurno('');
+    setCantidad('');
+    setSopCategory('');
+    setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
+    setProductionNotes('');  
+  }
+};
+    
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+            <input
+              type="text"
+              value={currentUser}
+              disabled
+              className="w-full px-4 py-2 border border-green-200 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sala</label>
+            <select
+              value={sala}
+              onChange={(e) => {
+                setSala(e.target.value);
+                setSopCategory('');
+                setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
+              }}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            >
+              <option value="">Seleccionar sala</option>
+              {items.map(item => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </div>
+          
+          {sala === 'Rx Sop' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría Rx SOP</label>
+              <select
+                value={sopCategory}
+                onChange={(e) => setSopCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-green-200 rounded-lg"
+              >
+                <option value="">Seleccionar categoría</option>
+                {sopCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+            <select
+              value={turno}
+              onChange={(e) => setTurno(e.target.value)}
+              className="w-full px-4 py-2 border border-green-200 rounded-lg"
+            >
+              <option value="">Seleccionar turno</option>
+              <option value="Diurno">Diurno</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+          
+    {sala !== 'Rx especiales' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+              <input
+                type="number"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                placeholder="0"
+                className="w-full px-4 py-2 border border-green-200 rounded-lg"
+              />
+            </div>
+          )}
+        </div>  
+    {sala === 'Rx especiales' && (
+         <div>
+    <div className="bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
+      {rxEspeciales.map((esp, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
+            <input
+              type="text"
+              value={esp.examen}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].examen = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="Nombre del examen"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={esp.cantidad}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].cantidad = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <div className="bg-green-50 p-4 rounded-lg mt-4">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
+      {procedimientos.map((proc, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
+            <input
+              type="text"
+              value={proc.nombre}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].nombre = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="Nombre del procedimiento"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={proc.cantidad}
+              onChange={(e) => {
+                const newProc = [...procedimientos];
+                newProc[index].cantidad = e.target.value;
+                setProcedimientos(newProc);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
             {!isAdmin && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
