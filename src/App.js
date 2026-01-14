@@ -54,7 +54,7 @@ import React, { useState, useEffect } from 'react';
     const [showRecovery, setShowRecovery] = useState(false);
     const [recoveryDNI, setRecoveryDNI] = useState('');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [editableItems, setEditableItems] = useState([...['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']]);
+    const [editableItems, setEditableItems] = useState([['Rx consulta externa', 'Rx consulta externa 2', 'Rx consulta externa 3', 'Rx emergencia', 'Rx hospitalizados', 'Rx especiales', 'Urvi', 'Rx portatil', 'Mamografia', 'Colocacion Arpon', 'Densitometria', 'Rx Sop', 'Morfometria', 'Sala Cpre']]);
     const [newSalaName, setNewSalaName] = useState('');
     const [editingProduction, setEditingProduction] = useState(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
@@ -512,7 +512,10 @@ await loadErrorReports();
   }
   
   try {
-    const updatedProd = {...editingProduction, cantidad: Number(editingProduction.cantidad)};
+    const updatedProd = {
+      ...editingProduction,
+      cantidad: Number(editingProduction.cantidad)
+    };
     
     // Actualizar en Firebase
     await updateProductionDB(updatedProd.id, updatedProd);
