@@ -3667,7 +3667,22 @@ const handleChangePassword = () => {
     </div>
   </div>
 )}
-<button
+
+        {/* Campo de Notas */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            📝 Notas / Observaciones (opcional)
+          </label>
+          <textarea
+            value={productionNotes}
+            onChange={(e) => setProductionNotes(e.target.value)}
+            placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            rows="2"
+          />
+        </div>
+        
+        <button
           onClick={handleSubmit}
           className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
         >
