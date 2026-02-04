@@ -3427,6 +3427,7 @@ console.log('Todos los parámetros:', {
               />
             </div>
           )}
+      </div>
     {sala === 'Rx especiales' && (
   <div>
     <div className="bg-blue-50 p-4 rounded-lg">
