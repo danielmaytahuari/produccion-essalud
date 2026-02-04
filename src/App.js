@@ -574,17 +574,19 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
     <div style="page-break-before: always; margin-top: 40px;">
       <h2 style="color: #0284c7; text-align: center; margin-bottom: 20px;">📅 REPORTE CALENDARIO DE PRODUCCIÓN INDIVIDUAL</h2>
       
-      <div style="border-top: 3px solid #0284c7; border-bottom: 3px solid #0284c7; padding: 15px 10px; margin: 20px 0; line-height: 1.8;">
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Red Asistencial:</strong> Sabogal</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Servicio:</strong> Radiodiagnóstico y Ecografía</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Especialidad:</strong> Radiología</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Cargo:</strong> Tecnólogo Médico</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">Usuario:</strong> ${userName}</div>
-        <div style="margin-bottom: 6px; font-size: 12px;"><strong style="color: #0369a1;">DNI:</strong> ${userId}</div>
-        <div style="font-size: 12px;"><strong style="color: #0369a1;">Mes:</strong> ${monthName}</div>
-      </div>
+      <div style="border-top: 3px solid #0284c7; border-bottom: 3px solid #0284c7; padding: 20px 15px; margin: 20px 0;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 30px;">
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Red Asistencial:</strong> Sabogal</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Centro Asistencial:</strong> Hospital Alberto Sabogal Sologuren</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Departamento:</strong> Ayuda al Diagnóstico y Tratamiento</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Servicio:</strong> Radiodiagnóstico y Ecografía</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Especialidad:</strong> Radiología</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Cargo:</strong> Tecnólogo Médico</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">Usuario:</strong> ${userName}</div>
+    <div style="font-size: 15px;"><strong style="color: #0369a1;">DNI:</strong> ${userId}</div>
+    <div style="font-size: 15px; grid-column: 1 / -1;"><strong style="color: #0369a1;">Mes:</strong> ${monthName}</div>
+  </div>
+</div>
       
       <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin: 20px 0;">
         <thead>
@@ -891,23 +893,7 @@ const exportToPDF = () => {
           <td><strong>${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</strong></td>
         </tr>
       </table>
-      
-      <p><strong>📊 Distribución por Turno:</strong></p>
-      <table style="margin: 10px 0;">
-        <tr>
-          <th>Diurno</th>
-          <th>Mañana</th>
-          <th>Tarde</th>
-          <th>Noche</th>
-        </tr>
-        <tr>
-          <td>${data.turnos.Diurno}</td>
-          <td>${data.turnos.Mañana}</td>
-          <td>${data.turnos.Tarde}</td>
-          <td>${data.turnos.Noche}</td>
-        </tr>
-      </table>
-      
+              
       ${userSopTotal > 0 ? `
       <div class="sop-section">
         <strong>🔬 Rx SOP por categoría:</strong><br><br>
@@ -1260,7 +1246,7 @@ const exportAdminGeneralPDF = (targetMonth) => {
 <body>
   <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
   
-  <h1>📊 Reporte de Producción General - ${targetMonth}</h1>
+<h1>📊 Reporte de Producción General - ${new Date(targetMonth + '-15').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }).toUpperCase()}</h1>
   
   <div class="summary">
     <div class="stat">
@@ -1277,19 +1263,7 @@ const exportAdminGeneralPDF = (targetMonth) => {
     </div>
   </div>
   
-  <h2>📅 Totales por Turno</h2>
-  <table>
-    <tr><th>Turno</th><th>Total</th><th>Porcentaje</th></tr>
-    ${Object.entries(report.byTurno).map(([turno, total]) => 
-      `<tr>
-        <td><strong>${turno}</strong></td>
-        <td><strong>${total}</strong></td>
-        <td>${report.totalGeneral > 0 ? ((total / report.totalGeneral) * 100).toFixed(1) : 0}%</td>
-      </tr>`
-    ).join('')}
-  </table>
-  
-  <h2>🏥 Totales por Sala</h2>
+   <h2>🏥 Totales por Sala</h2>
   <table>
     <tr><th>Sala</th><th>Total</th><th>Porcentaje</th></tr>
     ${editableItems.filter(item => report.bySala[item] > 0).map(item => 
@@ -1345,23 +1319,7 @@ const exportAdminGeneralPDF = (targetMonth) => {
           <td><strong>${data.horasTrabajadas > 0 ? (data.total / data.horasTrabajadas).toFixed(2) : 0}</strong></td>
         </tr>
       </table>
-      
-      <p><strong>📊 Distribución por Turno:</strong></p>
-      <table style="margin: 10px 0;">
-        <tr>
-          <th>Diurno</th>
-          <th>Mañana</th>
-          <th>Tarde</th>
-          <th>Noche</th>
-        </tr>
-        <tr>
-          <td>${data.turnos.Diurno}</td>
-          <td>${data.turnos.Mañana}</td>
-          <td>${data.turnos.Tarde}</td>
-          <td>${data.turnos.Noche}</td>
-        </tr>
-      </table>
-      
+       
       ${userSopTotal > 0 ? `
       <div class="sop-section">
         <strong>🔬 Rx SOP por categoría:</strong><br><br>
