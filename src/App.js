@@ -679,7 +679,10 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
   };
 
 const exportToPDF = () => {
-  console.log('exportToPDF llamado - isAdmin:', isAdmin);
+  // 🔍 DIAGNÓSTICO - BORRAR DESPUÉS
+  alert(`📅 Mes que se va a exportar: ${reportMonth}\n📅 Mes actual del sistema: ${new Date().toISOString().slice(0, 7)}`);
+  console.log('📅 reportMonth:', reportMonth);
+  console.log('📅 isAdmin:', isAdmin);
   
   const report = generateReport();
   const hasSopData = Object.values(report.bySopCategory).some(val => val > 0);
