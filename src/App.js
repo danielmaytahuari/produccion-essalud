@@ -976,8 +976,7 @@ const exportToPDF = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    alert(mensaje);
-  } catch (error) {
+      } catch (error) {
     console.error('Error al exportar:', error);
     alert('❌ Error al exportar el reporte: ' + error.message);
   }
