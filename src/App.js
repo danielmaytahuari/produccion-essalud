@@ -2696,7 +2696,7 @@ const handleChangePassword = () => {
     }
     
     const { matrix, days } = data;
-    const monthName = new Date(targetMonth + '-15').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+    const monthName = new Date(myProductionMonth + '-15').toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
     
     // Calcular totales por día
     const dayTotals = {};
