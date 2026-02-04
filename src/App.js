@@ -976,10 +976,6 @@ const exportToPDF = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    const mensaje = isAdmin 
-      ? '✅ Reporte completo descargado!\n\nIncluye:\n✔️ Reporte general de producción\n✔️ Resumen por usuarios\n✔️ Calendarios individuales de TODOS los usuarios\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"'
-      : '✅ Tu reporte individual descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"';
-    
     alert(mensaje);
   } catch (error) {
     console.error('Error al exportar:', error);
@@ -1049,8 +1045,7 @@ const exportToPDF = () => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  
-  alert('✅ Reporte individual descargado!\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
+ 
 };
 
 const exportAdminGeneralPDF = (targetMonth) => {
