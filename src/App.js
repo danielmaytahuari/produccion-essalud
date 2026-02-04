@@ -3313,7 +3313,7 @@ const handleChangePassword = () => {
           alert('Por favor ingresa al menos un examen especial');
           return;
         }
-        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, procedimientos, productionNotes);
+        const success = onSubmit(date, sala, turno, 0, null, rxEspeciales, null, productionNotes);
        if (success) {
           setSala('');
           setTurno('');
@@ -3335,13 +3335,12 @@ console.log('Todos los parámetros:', {
 });
 
       
-     const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, procedimientos, productionNotes);
+     const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, null, productionNotes);
      if (success) {
     setSala('');
     setTurno('');
     setCantidad('');
     setSopCategory('');
-    setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
     setProductionNotes('');  
   }
 };
