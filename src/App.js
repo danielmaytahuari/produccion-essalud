@@ -3429,7 +3429,7 @@ console.log('Todos los parámetros:', {
             </div>
           )}
     {sala === 'Rx especiales' && (
-         <div>
+  <div>
     <div className="bg-blue-50 p-4 rounded-lg">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
       {rxEspeciales.map((esp, index) => (
@@ -3463,15 +3463,17 @@ console.log('Todos los parámetros:', {
             />
           </div>
         </div>
-      </div>
-    )}
+      ))}
+    </div>
+  </div>
+)}
 
-   <button
-          onClick={handleSubmit}
-          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-        >
-          Registrar Producción
-        </button>
+<button
+  onClick={handleSubmit}
+  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
+>
+  Registrar Producción
+</button>
       </div>
     );
   }
