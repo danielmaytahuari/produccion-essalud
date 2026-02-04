@@ -3433,7 +3433,6 @@ console.log('Todos los parámetros:', {
               />
             </div>
           )}
-        </div>  
     {sala === 'Rx especiales' && (
          <div>
     <div className="bg-blue-50 p-4 rounded-lg">
@@ -3509,7 +3508,9 @@ console.log('Todos los parámetros:', {
     </div>
   </div>
 )}
-<button
+
+          </div>
+  <button
           onClick={handleSubmit}
           className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
         >
