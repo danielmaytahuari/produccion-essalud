@@ -3463,9 +3463,7 @@ console.log('Todos los parámetros:', {
             />
           </div>
         </div>
-      ))}
-    </div>
-   )}
+    )}
 
    <button
           onClick={handleSubmit}
