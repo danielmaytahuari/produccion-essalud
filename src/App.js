@@ -1379,7 +1379,6 @@ const exportAdminGeneralPDF = (targetMonth) => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   
-  alert('✅ Reporte general descargado!\n\nIncluye:\n✔️ Estadísticas generales\n✔️ Resumen de TODOS los usuarios\n✔️ Calendarios individuales\n\n📄 Para convertir a PDF:\n1. Abre el archivo HTML\n2. Click en "Imprimir / Guardar como PDF"\n3. Selecciona "Guardar como PDF"\n4. Click en "Guardar"');
 };
          
     const deleteUser = (dni) => {
