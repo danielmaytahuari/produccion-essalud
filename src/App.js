@@ -3294,11 +3294,7 @@ const handleChangePassword = () => {
     { examen: '', cantidad: '' },
     { examen: '', cantidad: '' }
   ]);
-  const [procedimientos, setProcedimientos] = useState([
-    { nombre: '', cantidad: '' },
-    { nombre: '', cantidad: '' },
-    { nombre: '', cantidad: '' }
-  ]);
+  
     
     const handleSubmit = () => {
       if (!sala || !turno) {
@@ -3322,7 +3318,6 @@ const handleChangePassword = () => {
           setSala('');
           setTurno('');
           setRxEspeciales([{ examen: '', cantidad: '' }, { examen: '', cantidad: '' }, { examen: '', cantidad: '' }]);
-          setProcedimientos([{ nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }, { nombre: '', cantidad: '' }]);
           setProductionNotes('');  // ← AGREGAR ESTA LÍNEA
         }
         return;
@@ -3470,47 +3465,9 @@ console.log('Todos los parámetros:', {
         </div>
       ))}
     </div>
-    
-    <div className="bg-green-50 p-4 rounded-lg mt-4">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">🏥 Procedimientos Realizados</h3>
-      {procedimientos.map((proc, index) => (
-        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento {index + 1}</label>
-            <input
-              type="text"
-              value={proc.nombre}
-              onChange={(e) => {
-                const newProc = [...procedimientos];
-                newProc[index].nombre = e.target.value;
-                setProcedimientos(newProc);
-              }}
-              placeholder="Nombre del procedimiento"
-              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
-            <input
-              type="number"
-              value={proc.cantidad}
-              onChange={(e) => {
-                const newProc = [...procedimientos];
-                newProc[index].cantidad = e.target.value;
-                setProcedimientos(newProc);
-              }}
-              placeholder="0"
-              className="w-full px-3 py-2 border border-green-200 rounded-lg text-sm"
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+   )}
 
-          </div>
-  <button
+   <button
           onClick={handleSubmit}
           className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
         >
