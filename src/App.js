@@ -568,7 +568,6 @@ const generateCalendarHTML = (userId, userName, targetMonth) => {
     rowTotals[key] = Object.values(dayData).reduce((sum, val) => sum + val, 0);
   });
   
-  const [year, month] = targetMonth.split('-');
   const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
   
   let html = `
@@ -2694,7 +2693,6 @@ const handleChangePassword = () => {
     }
     
     const { matrix, days } = data;
-    const [year, month] = myProductionMonth.split('-');
     const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
     
     // Calcular totales por día
