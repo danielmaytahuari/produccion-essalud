@@ -670,7 +670,7 @@ export default function ProductionSystem() {
     }
     
     return html;
-  };
+  }
 
   const exportToPDF = () => {
     console.log('exportToPDF llamado - isAdmin:', isAdmin);
