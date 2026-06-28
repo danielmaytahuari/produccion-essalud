@@ -50,9 +50,7 @@ export const getUserByDNI = async (dni) => {
 // Crear o actualizar usuario
 export const saveUser = async (userData) => {
   try {
-    // Asegurar que DNI sea string
     const dniString = String(userData.dni);
-    
     const userRef = doc(db, 'users', dniString);
     await setDoc(userRef, {
       dni: dniString,
@@ -60,17 +58,17 @@ export const saveUser = async (userData) => {
       password: userData.password,
       createdAt: new Date().toISOString()
     });
-    
     return userData;
   } catch (error) {
     console.error('Error en saveUser:', error);
     throw error;
   }
 };
+
 // Eliminar usuario
 export const deleteUser = async (dni) => {
   try {
-    const dniString = String(dni);  // ✅ Convertir a string
+    const dniString = String(dni);
     const userRef = doc(db, 'users', dniString);
     await deleteDoc(userRef);
     return true;
@@ -140,11 +138,11 @@ export const getProductionByMonth = async (year, month) => {
 // Agregar registro de producción
 export const addProduction = async (productionData) => {
   try {
-    const idString = String(productionData.id);  // ✅ Convertir a string
+    const idString = String(productionData.id);
     const prodRef = doc(db, 'production', idString);
     await setDoc(prodRef, {
       ...productionData,
-      id: idString  // Guardar también como string
+      id: idString
     });
     return { ...productionData, id: idString };
   } catch (error) {
@@ -158,14 +156,11 @@ export const updateProduction = async (id, data) => {
   try {
     const idString = String(id);
     const prodRef = doc(db, 'production', idString);
-    
-    // Usar setDoc con merge:true para crear si no existe
     await setDoc(prodRef, {
       ...data,
       id: idString,
       updatedAt: new Date().toISOString()
-    }, { merge: true });  // ✅ Crea o actualiza
-    
+    }, { merge: true });
     return { ...data, id: idString };
   } catch (error) {
     console.error('Error en updateProduction:', error);
@@ -176,7 +171,7 @@ export const updateProduction = async (id, data) => {
 // Eliminar registro de producción
 export const deleteProduction = async (id) => {
   try {
-    const idString = String(id);  // ✅ Convertir a string
+    const idString = String(id);
     const prodRef = doc(db, 'production', idString);
     await deleteDoc(prodRef);
     return true;
@@ -209,6 +204,33 @@ export const saveSalas = async (salasList) => {
     return { success: true };
   } catch (error) {
     console.error('Error al guardar salas:', error);
+    throw error;
+  }
+};
+
+// ==================== EXÁMENES ESPECIALES (NUEVO) ====================
+
+// Obtener catálogo de exámenes especiales
+export const getExamenesEspeciales = async () => {
+  try {
+    const examenesDoc = await getDoc(doc(db, 'config', 'examenes_especiales'));
+    if (examenesDoc.exists()) {
+      return examenesDoc.data().list || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error al obtener exámenes especiales:', error);
+    throw error;
+  }
+};
+
+// Guardar catálogo de exámenes especiales
+export const saveExamenesEspeciales = async (examenesList) => {
+  try {
+    await setDoc(doc(db, 'config', 'examenes_especiales'), { list: examenesList });
+    return { success: true };
+  } catch (error) {
+    console.error('Error al guardar exámenes especiales:', error);
     throw error;
   }
 };
@@ -257,9 +279,7 @@ export const listenToProduction = (callback) => {
 export const createErrorReport = async (reportData) => {
   try {
     const reportsRef = collection(db, 'error_reports');
-    
-    // Generar número correlativo mensual
-    const month = reportData.examDate.substring(0, 7); // "2026-01"
+    const month = reportData.examDate.substring(0, 7);
     const monthReportsQuery = query(
       reportsRef,
       where('month', '==', month),
