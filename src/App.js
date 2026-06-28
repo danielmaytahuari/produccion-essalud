@@ -604,6 +604,7 @@ export default function ProductionSystem() {
         const textColor = esAdmin ? '#92400e' : (value ? '#166534' : '#9ca3af');
         const fontWeight = esAdmin ? 'bold' : (value ? 'bold' : 'normal');
                 html += `            <td style="background: ${bgColor}; color: ${textColor}; font-weight: ${fontWeight}; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${value !== '' ? value : '-'}</td>\n`;
+      });
       
       html += `            <td style="background: #dbeafe; font-weight: bold; color: #1e40af; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${rowTotals[key]}</td>\n`;
       html += `          </tr>\n`;
