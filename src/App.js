@@ -599,9 +599,10 @@ export default function ProductionSystem() {
       
       days.forEach(day => {
         const value = dayData[day] || '';
-        const bgColor = value ? '#dcfce7' : '#f9fafb';
-        const textColor = value ? '#166534' : '#9ca3af';
-        const fontWeight = value ? 'bold' : 'normal';
+        const esAdmin = key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité');
+        const bgColor = esAdmin ? '#fef3c7' : (value ? '#dcfce7' : '#f9fafb');
+        const textColor = esAdmin ? '#92400e' : (value ? '#166534' : '#9ca3af');
+        const fontWeight = esAdmin ? 'bold' : (value ? 'bold' : 'normal');
         html += `            <td style="background: ${bgColor}; color: ${textColor}; font-weight: ${fontWeight}; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${value || '-'}</td>\n`;
       });
       
@@ -3015,12 +3016,16 @@ export default function ProductionSystem() {
                     {days.map(day => {
                       const value = dayData[day];
                       return (
-                        <td 
-                          key={day} 
-                          className={`p-2 border border-gray-300 text-center ${
-                            value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
-                          }`}
-                        >
+                                              <td 
+                        key={day} 
+                        className={`p-2 border border-gray-300 text-center ${
+                          key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité')
+                            ? 'bg-yellow-100 font-bold text-yellow-800'
+                            : value 
+                              ? 'bg-green-100 font-bold text-green-800' 
+                              : 'bg-gray-50 text-gray-400'
+                        }`}
+                      >
                           {value || '-'}
                         </td>
                       );
@@ -3140,10 +3145,14 @@ export default function ProductionSystem() {
                 {days.map(day => {
                   const value = dayData[day];
                   return (
-                    <td 
+                      <td 
                       key={day} 
                       className={`p-1 border border-gray-300 text-center text-[9px] ${
-                        value ? 'bg-green-100 font-bold text-green-800' : 'bg-gray-50 text-gray-400'
+                        key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité')
+                          ? 'bg-yellow-100 font-bold text-yellow-800'
+                          : value 
+                            ? 'bg-green-100 font-bold text-green-800' 
+                            : 'bg-gray-50 text-gray-400'
                       }`}
                     >
                       {value || '-'}
@@ -3394,19 +3403,28 @@ export default function ProductionSystem() {
         return;
       }
       
-      if (!cantidad) {
+           // Salas administrativas: cantidad 0 automático, pero suman horas
+      const salasAdministrativas = ['Administrativo', 'Control de Calidad', 'Comité'];
+      const esAdministrativa = salasAdministrativas.includes(sala);
+      
+      if (!esAdministrativa && !cantidad) {
         alert('Por favor ingresa la cantidad');
         return;
       }
       
-      const success = onSubmit(date, sala, turno, cantidad, sopCategory, null, null, productionNotes);
-      if (success) {
-  setSala('');
-  setTurno('');
-  setCantidad('');
-  setSopCategory('');
-  setProductionNotes('');
-}
+      const cantidadFinal = esAdministrativa ? 0 : cantidad;
+      
+      const success = onSubmit(date, sala, turno, cantidadFinal, sopCategory, null, null, productionNotes);
+           if (success) {
+        setSala('');
+        setTurno('');
+        setCantidad('');
+        setSopCategory('');
+        setProductionNotes('');
+        if (esAdministrativa) {
+          alert('✅ Turno administrativo registrado (Producción: 0, Horas: contabilizadas)');
+        }
+      }
     };
     
     return (
