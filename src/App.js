@@ -598,13 +598,12 @@ export default function ProductionSystem() {
       html += `            <td style="background: #f1f5f9; font-weight: bold; text-align: left; padding: 6px 4px; border: 1px solid #cbd5e1; max-width: 180px; font-size: 9px;">${key}</td>\n`;
       
       days.forEach(day => {
-        const value = dayData[day] || '';
+        const value = dayData[day] !== undefined ? dayData[day] : '';
         const esAdmin = key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité');
         const bgColor = esAdmin ? '#fef3c7' : (value ? '#dcfce7' : '#f9fafb');
         const textColor = esAdmin ? '#92400e' : (value ? '#166534' : '#9ca3af');
         const fontWeight = esAdmin ? 'bold' : (value ? 'bold' : 'normal');
-        html += `            <td style="background: ${bgColor}; color: ${textColor}; font-weight: ${fontWeight}; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${value || '-'}</td>\n`;
-      });
+                html += `            <td style="background: ${bgColor}; color: ${textColor}; font-weight: ${fontWeight}; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${value !== '' ? value : '-'}</td>\n`;
       
       html += `            <td style="background: #dbeafe; font-weight: bold; color: #1e40af; padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center; font-size: 9px;">${rowTotals[key]}</td>\n`;
       html += `          </tr>\n`;
@@ -2689,7 +2688,8 @@ export default function ProductionSystem() {
           matrix[key] = {};
         }
         
-        matrix[key][day] = (matrix[key][day] || 0) + Number(p.cantidad);
+        const cantidad = Number(p.cantidad) || 0;
+      matrix[key][day] = (matrix[key][day] !== undefined ? matrix[key][day] : 0) + cantidad;
       });
       
       const turnoOrder = { 'Mañana': 1, 'Tarde': 2, 'Diurno': 3, 'Noche': 4 };
@@ -3013,20 +3013,22 @@ export default function ProductionSystem() {
                     <td className="bg-gray-50 font-semibold p-2 border border-gray-300 text-left sticky left-0 z-10">
                       {key}
                     </td>
-                    {days.map(day => {
+                      {days.map(day => {
                       const value = dayData[day];
+                      const tieneValor = value !== undefined && value !== '';
+                      const esAdmin = key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité');
                       return (
-                                              <td 
-                        key={day} 
-                        className={`p-2 border border-gray-300 text-center ${
-                          key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité')
-                            ? 'bg-yellow-100 font-bold text-yellow-800'
-                            : value 
-                              ? 'bg-green-100 font-bold text-green-800' 
-                              : 'bg-gray-50 text-gray-400'
-                        }`}
-                      >
-                          {value || '-'}
+                        <td 
+                          key={day} 
+                          className={`p-2 border border-gray-300 text-center ${
+                            esAdmin && tieneValor
+                              ? 'bg-yellow-100 font-bold text-yellow-800'
+                              : tieneValor
+                                ? 'bg-green-100 font-bold text-green-800'
+                                : 'bg-gray-50 text-gray-400'
+                          }`}
+                        >
+                          {tieneValor ? value : '-'}
                         </td>
                       );
                     })}
@@ -3144,18 +3146,20 @@ export default function ProductionSystem() {
                 </td>
                 {days.map(day => {
                   const value = dayData[day];
+                  const tieneValor = value !== undefined && value !== '';
+                  const esAdmin = key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité');
                   return (
-                      <td 
+                    <td 
                       key={day} 
                       className={`p-1 border border-gray-300 text-center text-[9px] ${
-                        key.includes('Administrativo') || key.includes('Control de Calidad') || key.includes('Comité')
+                        esAdmin && tieneValor
                           ? 'bg-yellow-100 font-bold text-yellow-800'
-                          : value 
-                            ? 'bg-green-100 font-bold text-green-800' 
+                          : tieneValor
+                            ? 'bg-green-100 font-bold text-green-800'
                             : 'bg-gray-50 text-gray-400'
                       }`}
                     >
-                      {value || '-'}
+                      {tieneValor ? value : '-'}
                     </td>
                   );
                 })}
