@@ -3494,67 +3494,65 @@ export default function ProductionSystem() {
         </div>  
         
         {sala === 'Rx especiales' && (
+  <div>
+    <div className="bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
+      {rxEspeciales.map((esp, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 mb-3">
           <div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Exámenes Especiales Realizados</h3>
-              {rxEspeciales.map((esp, index) => (
-                <div key={index} className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
-                    {/* ← REEMPLAZADO: input text por select con catálogo */}
-                    <select
-                      value={esp.examen}
-                      onChange={(e) => {
-                        const newEsp = [...rxEspeciales];
-                        newEsp[index].examen = e.target.value;
-                        setRxEspeciales(newEsp);
-                      }}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
-                    >
-                      <option value="">Seleccionar examen</option>
-                      {examenesEspecialesCatalogo.map(examen => (
-                        <option key={examen} value={examen}>{examen}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
-                    <input
-                      type="number"
-                      value={esp.cantidad}
-                      onChange={(e) => {
-                        const newEsp = [...rxEspeciales];
-                        newEsp[index].cantidad = e.target.value;
-                        setRxEspeciales(newEsp);
-                      }}
-                      placeholder="0"
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
-                    />
-                  </div>
-                </div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Examen {index + 1}</label>
+            <select
+              value={esp.examen}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].examen = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            >
+              <option value="">Seleccionar examen</option>
+              {examenesEspecialesCatalogo.map(examen => (
+                <option key={examen} value={examen}>{examen}</option>
               ))}
-            </div>
-                  
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            📝 Notas / Observaciones (opcional)
-          </label>
-          <textarea
-            value={productionNotes}
-            onChange={(e) => setProductionNotes(e.target.value)}
-            placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
-            className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            rows="2"
-          />
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+            <input
+              type="number"
+              value={esp.cantidad}
+              onChange={(e) => {
+                const newEsp = [...rxEspeciales];
+                newEsp[index].cantidad = e.target.value;
+                setRxEspeciales(newEsp);
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+            />
+          </div>
         </div>
+      ))}
+    </div>
+  </div>
+)}
 
-        <button
-          onClick={handleSubmit}
-          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-        >
-          Registrar Producción
-        </button>
-      </div>
-    );
-  }
-}
+{/* ← NOTAS Y BOTÓN FUERA DEL CONDICIONAL */}
+<div className="mt-4">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    📝 Notas / Observaciones (opcional)
+  </label>
+  <textarea
+    value={productionNotes}
+    onChange={(e) => setProductionNotes(e.target.value)}
+    placeholder="Ej: Paciente pediátrico, urgencia, estudio especial..."
+    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+    rows="2"
+  />
+</div>
+
+<button
+  onClick={handleSubmit}
+  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
+>
+  Registrar Producción
+</button>
