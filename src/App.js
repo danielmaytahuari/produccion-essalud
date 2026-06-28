@@ -3556,3 +3556,7 @@ export default function ProductionSystem() {
 >
   Registrar Producción
 </button>
+      </div>
+    );
+  }
+}
